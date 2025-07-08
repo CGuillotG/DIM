@@ -15,3 +15,15 @@
   height: auto;
   filter: invert(1) !important;
 }
+
+.weaponTypeIconSpecial {
+  width: 100%;
+  height: auto;
+  filter: invert(0.9) sepia(1) saturate(4000%) hue-rotate(60deg) brightness(120%) contrast(0.6) !important;
+}
+
+.weaponTypeIconHeavy {
+  width: 100%;
+  height: auto;
+  filter: invert(0.1) sepia(1) saturate(4000%) hue-rotate(255deg) brightness(200%) contrast(0.4) !important;
+}

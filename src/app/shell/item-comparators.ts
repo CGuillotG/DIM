@@ -136,6 +136,12 @@ interface VaultGroupIconAmmoType {
   ammoType: DestinyAmmunitionType;
 }
 
+interface VaultGroupIconWeaponAmmoType {
+  type: 'weaponAmmoType';
+  ammoType: DestinyAmmunitionType;
+  itemCategoryHashes: ItemCategoryHashes[];
+}
+
 interface VaultGroupIconElementWeapon {
   type: 'elementWeapon';
   element: DestinyDamageTypeDefinition | null;
@@ -146,6 +152,7 @@ export type VaultGroupIcon =
   | VaultGroupIconTag
   | VaultGroupIconTypeName
   | VaultGroupIconAmmoType
+  | VaultGroupIconWeaponAmmoType
   | VaultGroupIconElementWeapon;
 
 interface VaultGroup {
@@ -203,6 +210,16 @@ const GROUP_BY_GETTERS_AND_COMPARATORS: {
     comparator: undefinedVaultGroupLast(compareBy(groupingValueProperty)),
     getValue: (item) => item.typeName,
     getIcon: (item) => ({ type: 'typeName', itemCategoryHashes: item.itemCategoryHashes }),
+  },
+  // A -> Z
+  weaponAmmoType: {
+    comparator: undefinedVaultGroupLast(compareBy(groupingValueProperty)),
+    getValue: (item) => `${item.ammoType}${item.typeName}`,
+    getIcon: (item) => ({
+      type: 'weaponAmmoType',
+      ammoType: item.ammoType,
+      itemCategoryHashes: item.itemCategoryHashes,
+    }),
   },
   // exotic -> common
   rarity: {

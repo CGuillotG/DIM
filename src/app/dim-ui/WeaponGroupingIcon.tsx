@@ -1,6 +1,7 @@
 import TagIcon from 'app/inventory/TagIcon';
 import { AmmoIcon } from 'app/item-popup/AmmoIcon';
 import { VaultGroupIcon } from 'app/shell/item-comparators';
+import { DestinyAmmunitionType } from 'bungie-api-ts/destiny2';
 import ElementIcon from './ElementIcon';
 import { getWeaponTypeSvgIconFromCategoryHashes } from './svgs/itemCategory';
 import styles from './WeaponGroupingIcon.m.scss';
@@ -19,6 +20,23 @@ export default function WeaponGroupingIcon({
         typeIcon && (
           <div className={className}>
             <img src={typeIcon.svg} className={styles.weaponTypeIcon} />
+          </div>
+        )
+      );
+    }
+
+    case 'weaponAmmoType': {
+      const typeIcon = getWeaponTypeSvgIconFromCategoryHashes(icon.itemCategoryHashes);
+      let weaponTypeClass = styles.weaponTypeIcon;
+      if (icon.ammoType === DestinyAmmunitionType.Heavy) {
+        weaponTypeClass = styles.weaponTypeIconHeavy;
+      } else if (icon.ammoType === DestinyAmmunitionType.Special) {
+        weaponTypeClass = styles.weaponTypeIconSpecial;
+      }
+      return (
+        typeIcon && (
+          <div className={className}>
+            <img src={typeIcon.svg} className={weaponTypeClass} />
           </div>
         )
       );

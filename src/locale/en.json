@@ -1218,6 +1218,7 @@
     "SortBySeason": "Season (D2)",
     "SortByTag": "Tag ({{taglist}})",
     "SortByType": "Type",
+    "SortByWeaponAmmoType": "Weapon & Ammo Type",
     "SortByWeaponElement": "Damage Type",
     "SortCustom": "Custom Sort",
     "SortName": "Name",

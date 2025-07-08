@@ -186,6 +186,7 @@ export default function SettingsPage() {
     typeName: t('Settings.SortByType'),
     rarity: t('Settings.SortByRarity'),
     ammoType: t('Settings.SortByAmmoType'),
+    weaponAmmoType: t('Settings.SortByWeaponAmmoType'),
     tag: t('Settings.SortByTag', { taglist: tagListString }),
     elementWeapon: t('Settings.SortByWeaponElement'),
   });

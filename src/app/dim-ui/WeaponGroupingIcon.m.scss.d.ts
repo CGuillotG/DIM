@@ -4,6 +4,8 @@ interface CssExports {
   'ammoIcon': string;
   'elementIcon': string;
   'weaponTypeIcon': string;
+  'weaponTypeIconHeavy': string;
+  'weaponTypeIconSpecial': string;
 }
 export const cssExports: CssExports;
 export default cssExports;
