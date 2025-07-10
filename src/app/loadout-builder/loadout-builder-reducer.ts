@@ -23,6 +23,7 @@ import {
   updateMods,
 } from 'app/loadout-drawer/loadout-drawer-reducer';
 import { findItemForLoadout, newLoadout, pickBackingStore } from 'app/loadout-drawer/loadout-utils';
+import { EFFECTIVE_MAX_STAT, MAX_STAT } from 'app/loadout/known-values';
 import { isLoadoutBuilderItem } from 'app/loadout/loadout-item-utils';
 import { Loadout, ResolvedLoadoutMod } from 'app/loadout/loadout-types';
 import { showNotification } from 'app/notifications/notifications';
@@ -37,9 +38,9 @@ import { useCallback, useMemo, useReducer } from 'react';
 import { useSelector } from 'react-redux';
 import { resolveStatConstraints, unresolveStatConstraints } from './loadout-params';
 import {
+  ArmorBucketHashes,
   ArmorSet,
   ExcludedItems,
-  LockableBucketHashes,
   PinnedItems,
   ResolvedStatConstraint,
 } from './types';
@@ -196,7 +197,7 @@ const lbConfigInit = ({
         .find(
           (i) =>
             Boolean(i?.equippingBlock?.uniqueLabel) &&
-            LockableBucketHashes.includes(i.inventory?.bucketTypeHash ?? 0),
+            ArmorBucketHashes.includes(i.inventory?.bucketTypeHash ?? 0),
         );
 
       if (equippedExotic) {
@@ -364,7 +365,7 @@ function lbConfigReducer(defs: D2ManifestDefinitions) {
       case 'statConstraintReset': {
         return updateStatConstraints(
           state,
-          armorStats.map((s) => ({ statHash: s, minTier: 0, maxTier: 10, ignored: false })),
+          armorStats.map((s) => ({ statHash: s, minStat: 0, maxStat: MAX_STAT, ignored: false })),
         );
       }
       case 'statConstraintRandomize': {
@@ -373,8 +374,8 @@ function lbConfigReducer(defs: D2ManifestDefinitions) {
           shuffle(
             armorStats.map((s) => ({
               statHash: s,
-              minTier: Math.floor(Math.random() * 10),
-              maxTier: 10,
+              minStat: Math.floor(Math.random() * EFFECTIVE_MAX_STAT),
+              maxStat: MAX_STAT,
               ignored: false,
             })),
           ),

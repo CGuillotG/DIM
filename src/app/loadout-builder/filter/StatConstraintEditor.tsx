@@ -11,6 +11,7 @@ import BungieImage from 'app/dim-ui/BungieImage';
 import { PressTip } from 'app/dim-ui/PressTip';
 import { t } from 'app/i18next-t';
 import { DimStore } from 'app/inventory/store-types';
+import { MAX_STAT } from 'app/loadout/known-values';
 import LoadoutEditSection from 'app/loadout/loadout-edit/LoadoutEditSection';
 import { useD2Definitions } from 'app/manifest/selectors';
 import {
@@ -27,7 +28,7 @@ import { delay } from 'app/utils/promises';
 import clsx from 'clsx';
 import React, { Dispatch, useEffect, useRef } from 'react';
 import { LoadoutBuilderAction } from '../loadout-builder-reducer';
-import { ArmorStatHashes, MinMaxTier, ResolvedStatConstraint, StatRanges } from '../types';
+import { ArmorStatHashes, MinMaxStat, ResolvedStatConstraint, StatRanges } from '../types';
 import { statTier } from '../utils';
 import styles from './StatConstraintEditor.m.scss';
 
@@ -62,8 +63,8 @@ export default function StatConstraintEditor({
       (s): ResolvedStatConstraint => ({
         statHash: s.hash,
         ignored: false,
-        maxTier: 10,
-        minTier: statTier(s.value),
+        maxStat: MAX_STAT,
+        minStat: s.value,
       }),
     );
     lbDispatch({ type: 'setStatConstraints', constraints });
@@ -129,7 +130,7 @@ function StatRow({
   equippedHashes,
 }: {
   statConstraint: ResolvedStatConstraint;
-  statRange?: MinMaxTier;
+  statRange?: MinMaxStat;
   index: number;
   onTierChange: (constraint: ResolvedStatConstraint) => void;
   equippedHashes: Set<number>;
@@ -138,17 +139,17 @@ function StatRow({
   const statHash = statConstraint.statHash as ArmorStatHashes;
   const statDef = defs.Stat.get(statHash);
   const handleIgnore = () => onTierChange({ ...statConstraint, ignored: !statConstraint.ignored });
-  const handleSelectTier = (tierNum: number, shift: boolean) =>
-    shift
+  const handleSelectTier = (tierNum: number, setMax: boolean /* shift key */) =>
+    setMax
       ? onTierChange({
           ...statConstraint,
-          maxTier: tierNum,
-          minTier: Math.min(statConstraint.minTier, tierNum),
+          minStat: Math.min(statConstraint.minStat, tierNum * 10),
+          maxStat: tierNum * 10,
         })
       : onTierChange({
           ...statConstraint,
-          minTier: tierNum,
-          maxTier: Math.max(statConstraint.maxTier, tierNum),
+          minStat: tierNum * 10,
+          maxStat: Math.max(statConstraint.maxStat, tierNum * 10),
         });
 
   return (
@@ -237,7 +238,7 @@ function StatTierBar({
   equippedHashes,
 }: {
   statConstraint: ResolvedStatConstraint;
-  statRange?: MinMaxTier;
+  statRange?: MinMaxStat;
   onSelected: (tierNum: number, shift: boolean) => void;
   equippedHashes: Set<number>;
 }) {
@@ -249,7 +250,7 @@ function StatTierBar({
 
   // Support keyboard interaction
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    const tierNum = statConstraint.minTier;
+    const tierNum = statTier(statConstraint.minStat);
     if (event.repeat) {
       return;
     }
@@ -319,12 +320,12 @@ function StatTierBar({
       {Array.from({ length: 11 }, (_, tierNum) => (
         <div
           role="button"
-          tabIndex={tierNum === statConstraint.minTier ? 0 : -1}
+          tabIndex={tierNum === statTier(statConstraint.minStat) ? 0 : -1}
           key={tierNum}
           className={clsx(styles.statBarSegment, {
-            [styles.selectedStatBar]: statConstraint.minTier >= tierNum,
-            [styles.maxRestricted]: tierNum > statConstraint.maxTier,
-            [styles.maxed]: tierNum > (statRange?.maxTier ?? 10),
+            [styles.selectedStatBar]: statTier(statConstraint.minStat) >= tierNum,
+            [styles.maxRestricted]: tierNum > statTier(statConstraint.maxStat),
+            [styles.maxed]: tierNum > statTier(statRange?.maxStat ?? 100),
           })}
           onClick={(e) => onSelected(tierNum, e.shiftKey)}
           onKeyDown={handleKeyDown}

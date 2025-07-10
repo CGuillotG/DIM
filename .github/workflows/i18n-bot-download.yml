@@ -26,7 +26,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Download updated i18n files
-        uses: crowdin/github-action@v2.7.1
+        uses: crowdin/github-action@v2.8.0
         with:
           upload_sources: false
           upload_translations: false
@@ -61,7 +61,7 @@ jobs:
 
       - name: Commit files
         if: steps.filter.outputs.changed
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: i18n
           commit_user_name: DIM i18n Bot

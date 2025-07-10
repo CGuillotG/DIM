@@ -6,7 +6,7 @@ import { DimStore } from 'app/inventory/store-types';
 import { ProcessResult } from 'app/loadout-builder/process-worker/types';
 import { getAutoMods } from 'app/loadout-builder/process/mappers';
 import type { runProcess } from 'app/loadout-builder/process/process-wrapper';
-import { ArmorSet, LockableBucketHashes, StatRanges } from 'app/loadout-builder/types';
+import { ArmorBucketHashes, ArmorSet, StatRanges } from 'app/loadout-builder/types';
 import { statTier } from 'app/loadout-builder/utils';
 import { randomSubclassConfiguration } from 'app/loadout-drawer/auto-loadouts';
 import { addItem, setLoadoutParameters } from 'app/loadout-drawer/loadout-drawer-reducer';
@@ -15,6 +15,7 @@ import {
   newLoadout,
   newLoadoutFromEquipped,
 } from 'app/loadout-drawer/loadout-utils';
+import { MAX_STAT } from 'app/loadout/known-values';
 import { Loadout } from 'app/loadout/loadout-types';
 import { armorStats } from 'app/search/d2-known-values';
 import { maxOf, sumBy } from 'app/utils/collections';
@@ -58,8 +59,8 @@ function noopProcessWorkerMock(..._args: Parameters<typeof runProcess>): {
         armorStats.map((h) => [
           h,
           {
-            minTier: 10,
-            maxTier: 0,
+            minStat: MAX_STAT,
+            maxStat: 0,
           },
         ]),
       ) as StatRanges,
@@ -169,7 +170,7 @@ describe('basic loadout analysis finding tests', () => {
   });
 
   it('finds UsesSeasonalMods/ModsDontFit', async () => {
-    const items = LockableBucketHashes.map(
+    const items = ArmorBucketHashes.map(
       (hash) =>
         allItems.find(
           (i) =>
@@ -250,7 +251,7 @@ describe('basic loadout analysis finding tests', () => {
   });
 
   it('finds DoesNotSatisfyStatConstraints', async () => {
-    const nonMasterworkedArmor = LockableBucketHashes.map(
+    const nonMasterworkedArmor = ArmorBucketHashes.map(
       (hash) =>
         allItems.find(
           (i) =>
@@ -316,12 +317,14 @@ describe('basic loadout analysis finding tests', () => {
     for (const c of args) {
       if (c.statHash === StatHashes.Recovery) {
         // The loadout has no constraint for recovery, so it gets the existing loadout stats as the minimum
-        expect(c.minTier).toBe(
-          baseArmorStatConstraints.find((base) => base.statHash === c.statHash)!.minTier,
+        expect(c.minStat).toBe(
+          baseArmorStatConstraints.find((base) => base.statHash === c.statHash)!.minTier! * 10,
         );
       } else if (c.statHash !== StatHashes.Mobility) {
         // The loadout does not satisfy stat constraints, but LO gets called with the constraints as minimum
-        expect(c.minTier).toBe(newConstraints.find((n) => n.statHash === c.statHash)!.minTier);
+        expect(c.minStat).toBe(
+          newConstraints.find((n) => n.statHash === c.statHash)!.minTier! * 10,
+        );
       }
     }
 
