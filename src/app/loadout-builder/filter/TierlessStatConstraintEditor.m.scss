@@ -72,45 +72,13 @@
   grid-area: bar;
   composes: flexRow from '../../dim-ui/common.m.scss';
   margin: 4px 0 2px 4px;
-  gap: 2px;
-}
+  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
 
-.statBarSegment {
-  composes: flexRow from '../../dim-ui/common.m.scss';
-  flex: 1;
-  background-color: var(--theme-button-bg);
-  color: var(--theme-button-text);
-  font-size: 12px;
-  height: 20px;
-  box-sizing: border-box;
-
-  @include interactive($hover: true) {
-    outline: 1px solid var(--theme-accent-primary);
+  > input {
+    max-width: 5ch;
   }
-
-  /* stylelint-disable-next-line no-descending-specificity */
-  > * {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-  }
-}
-
-// Tiers that can't be reached given the currently selected minimums
-.maxed:not(.selectedStatBar) {
-  color: #666;
-  background-color: rgb(255, 255, 255, 0.1);
-}
-.maxRestricted:not(.selectedStatBar) {
-  color: #666;
-  background-color: transparent;
-}
-
-.selectedStatBar {
-  background-color: var(--theme-accent-primary);
-  color: var(--theme-text-invert);
 }
 
 .buttons {
@@ -144,4 +112,55 @@
 
 .dragging {
   outline: 1px solid var(--theme-accent-primary);
+}
+
+.statRange {
+  width: 100%;
+  // TODO: Colors
+  background-color: #333;
+  height: 12px;
+  position: relative;
+  cursor: pointer;
+}
+
+.statBarFill {
+  position: absolute;
+  background-color: white;
+  height: 100%;
+  transition:
+    all 0.2s ease-in-out,
+    opacity 0.5s linear;
+}
+
+.statBarMin,
+.statBarMax {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  height: 20px;
+  width: 4px;
+  transform: translateY(-4px);
+  border: 2px solid var(--theme-accent-primary);
+}
+
+.statBarMax {
+  transform: translateY(-4px) translateX(-2px);
+  border-left: none;
+}
+
+.statBarMin {
+  border-right: none;
+}
+
+.processing {
+  // Apply a gentle pulsing opacity animation
+  animation: processing-pulse 1s alternate infinite;
+  animation-delay: 0.5s;
+  opacity: 0.5;
+}
+
+@keyframes processing-pulse {
+  100% {
+    opacity: 0.2;
+  }
 }

@@ -8,12 +8,12 @@ import {
   SnapDragActions,
 } from '@hello-pangea/dnd';
 import BungieImage from 'app/dim-ui/BungieImage';
-import { PressTip } from 'app/dim-ui/PressTip';
 import { t } from 'app/i18next-t';
 import { DimStore } from 'app/inventory/store-types';
 import { MAX_STAT } from 'app/loadout/known-values';
 import LoadoutEditSection from 'app/loadout/loadout-edit/LoadoutEditSection';
 import { useD2Definitions } from 'app/manifest/selectors';
+import { percent } from 'app/shell/formatters';
 import {
   AppIcon,
   dragHandleIcon,
@@ -22,26 +22,27 @@ import {
   moveDownIcon,
   moveUpIcon,
 } from 'app/shell/icons';
-import StatTooltip from 'app/store-stats/StatTooltip';
-import { useShiftHeld } from 'app/utils/hooks';
 import { delay } from 'app/utils/promises';
 import clsx from 'clsx';
-import React, { Dispatch, useEffect, useRef } from 'react';
+import { Dispatch, useEffect, useRef, useState } from 'react';
 import { LoadoutBuilderAction } from '../loadout-builder-reducer';
 import { ArmorStatHashes, MinMaxStat, ResolvedStatConstraint, StatRanges } from '../types';
-import { statTier } from '../utils';
-import styles from './StatConstraintEditor.m.scss';
+import styles from './TierlessStatConstraintEditor.m.scss';
 
 /**
- * A selector that allows for choosing minimum and maximum stat ranges, plus reordering the stat priority.
+ * A selector that allows for choosing minimum and maximum stat ranges, plus
+ * reordering the stat priority. This does not use tiers, it allows selecting
+ * exact stat values and is mean to be used after Edge of Fate releases and
+ * makes all stats have an incremental effect.
  */
-export default function StatConstraintEditor({
+export default function TierlessStatConstraintEditor({
   store,
   resolvedStatConstraints,
   statRangesFiltered,
   equippedHashes,
   className,
   lbDispatch,
+  processing,
 }: {
   store: DimStore;
   resolvedStatConstraints: ResolvedStatConstraint[];
@@ -50,8 +51,10 @@ export default function StatConstraintEditor({
   equippedHashes: Set<number>;
   className?: string;
   lbDispatch: Dispatch<LoadoutBuilderAction>;
+  processing: boolean;
 }) {
-  const handleTierChange = (constraint: ResolvedStatConstraint) =>
+  // Actually change the stat constraints in the LO state, which triggers recalculation of sets.
+  const handleStatChange = (constraint: ResolvedStatConstraint) =>
     lbDispatch({ type: 'statConstraintChanged', constraint });
 
   const handleClear = () => lbDispatch({ type: 'statConstraintReset' });
@@ -70,32 +73,32 @@ export default function StatConstraintEditor({
     lbDispatch({ type: 'setStatConstraints', constraints });
   };
 
-  const onDragEnd = (result: DropResult) => {
+  // Handle dropping the stat constraints in a new order
+  const handleDragEnd = (result: DropResult) => {
     // dropped outside the list
     if (!result.destination) {
       return;
     }
     const sourceIndex = result.source.index;
-    lbDispatch({
-      type: 'statOrderChanged',
-      sourceIndex,
-      destinationIndex: result.destination.index,
-    });
+    const destinationIndex = result.destination.index;
+    if (sourceIndex !== destinationIndex) {
+      lbDispatch({
+        type: 'statOrderChanged',
+        sourceIndex,
+        destinationIndex: result.destination.index,
+      });
+    }
   };
-
-  const shiftHeld = useShiftHeld();
 
   return (
     <LoadoutEditSection
-      title={
-        t('LoadoutBuilder.StatConstraints') + (shiftHeld ? ` (${t('LoadoutBuilder.StatMax')})` : '')
-      }
+      title={t('LoadoutBuilder.StatConstraints')}
       className={className}
       onClear={handleClear}
       onSyncFromEquipped={handleSyncFromEquipped}
       onRandomize={handleRandomize}
     >
-      <DragDropContext onDragEnd={onDragEnd} sensors={[useButtonSensor]}>
+      <DragDropContext onDragEnd={handleDragEnd} sensors={[useButtonSensor]}>
         <Droppable droppableId="droppable">
           {(provided) => (
             <div ref={provided.innerRef} className={styles.editor}>
@@ -107,8 +110,9 @@ export default function StatConstraintEditor({
                     statConstraint={c}
                     index={index}
                     statRange={statRangesFiltered?.[statHash]}
-                    onTierChange={handleTierChange}
+                    onStatChange={handleStatChange}
                     equippedHashes={equippedHashes}
+                    processing={processing}
                   />
                 );
               })}
@@ -126,31 +130,43 @@ function StatRow({
   statConstraint,
   statRange,
   index,
-  onTierChange,
+  onStatChange,
   equippedHashes,
+  processing,
 }: {
   statConstraint: ResolvedStatConstraint;
   statRange?: MinMaxStat;
   index: number;
-  onTierChange: (constraint: ResolvedStatConstraint) => void;
+  onStatChange: (constraint: ResolvedStatConstraint) => void;
   equippedHashes: Set<number>;
+  processing: boolean;
 }) {
   const defs = useD2Definitions()!;
   const statHash = statConstraint.statHash as ArmorStatHashes;
   const statDef = defs.Stat.get(statHash);
-  const handleIgnore = () => onTierChange({ ...statConstraint, ignored: !statConstraint.ignored });
-  const handleSelectTier = (tierNum: number, setMax: boolean /* shift key */) =>
-    setMax
-      ? onTierChange({
-          ...statConstraint,
-          minStat: Math.min(statConstraint.minStat, tierNum * 10),
-          maxStat: tierNum * 10,
-        })
-      : onTierChange({
-          ...statConstraint,
-          minStat: tierNum * 10,
-          maxStat: Math.max(statConstraint.maxStat, tierNum * 10),
-        });
+  const handleIgnore = () => onStatChange({ ...statConstraint, ignored: !statConstraint.ignored });
+
+  const setMin = (value: number) => {
+    if (value !== statConstraint.minStat) {
+      onStatChange({
+        ...statConstraint,
+        minStat: value,
+        maxStat: Math.max(value, statConstraint.maxStat),
+      });
+    }
+  };
+  const setMax = (value: number) => {
+    if (value !== statConstraint.maxStat) {
+      onStatChange({
+        ...statConstraint,
+        minStat: Math.min(value, statConstraint.minStat),
+        maxStat: value,
+      });
+    }
+  };
+
+  const min = statConstraint.minStat;
+  const max = statConstraint.maxStat;
 
   return (
     <Draggable draggableId={statHash.toString()} index={index}>
@@ -218,12 +234,17 @@ function StatRow({
             </button>
           </div>
           {!statConstraint.ignored && (
-            <StatTierBar
-              statConstraint={statConstraint}
-              statRange={statRange}
-              equippedHashes={equippedHashes}
-              onSelected={handleSelectTier}
-            />
+            <StatEditBar min={min} max={max} setMin={setMin} setMax={setMax}>
+              <StatBar
+                range={statRange}
+                equippedHashes={equippedHashes}
+                min={min}
+                max={max}
+                setMin={setMin}
+                setMax={setMax}
+                processing={processing}
+              />
+            </StatEditBar>
           )}
         </div>
       )}
@@ -231,124 +252,163 @@ function StatRow({
   );
 }
 
-function StatTierBar({
-  statConstraint,
-  statRange,
-  onSelected,
-  equippedHashes,
+function StatEditBar({
+  min,
+  max,
+  setMin,
+  setMax,
+  children,
 }: {
-  statConstraint: ResolvedStatConstraint;
-  statRange?: MinMaxStat;
-  onSelected: (tierNum: number, shift: boolean) => void;
-  equippedHashes: Set<number>;
+  min: number;
+  max: number;
+  setMin: (value: number) => void;
+  setMax: (value: number) => void;
+  children: React.ReactNode;
 }) {
-  const defs = useD2Definitions()!;
-  const statHash = statConstraint.statHash as ArmorStatHashes;
-  const statDef = defs.Stat.get(statHash);
-  const focused = useRef<number | undefined>(undefined);
-  const statBarRef = useRef<HTMLDivElement>(null);
+  const [minText, setMinText] = useState(min.toString());
+  const [maxText, setMaxText] = useState(max.toString());
+  useEffect(() => {
+    setMinText(min.toString());
+  }, [min]);
+  useEffect(() => {
+    setMaxText(max.toString());
+  }, [max]);
 
-  // Support keyboard interaction
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    const tierNum = statTier(statConstraint.minStat);
-    if (event.repeat) {
-      return;
-    }
-    switch (event.key) {
-      case '-':
-      case '_':
-      case 'ArrowLeft': {
-        if (tierNum > 0) {
-          onSelected(tierNum - 1, event.shiftKey);
-        }
-        focused.current = tierNum - 1;
-        break;
-      }
-      case '=':
-      case '+':
-      case 'ArrowRight': {
-        if (tierNum < 10) {
-          onSelected(tierNum + 1, event.shiftKey);
-        }
-        focused.current = tierNum + 1;
-        break;
-      }
+  return (
+    <div className={styles.statBar}>
+      <input
+        type="number"
+        min={0}
+        max={MAX_STAT}
+        value={minText}
+        aria-label={t('LoadoutBuilder.StatMin')}
+        onChange={(e) => {
+          setMinText(e.target.value);
+          const value = parseInt(e.target.value, 10);
+          if (isNaN(value) || value < 0 || value > MAX_STAT) {
+            return;
+          }
+          setMin(value);
+        }}
+      />
+      {children}
+      <input
+        type="number"
+        min={0}
+        max={MAX_STAT}
+        value={maxText}
+        aria-label={t('LoadoutBuilder.StatMax')}
+        onChange={(e) => {
+          setMaxText(e.target.value);
+          const value = parseInt(e.target.value, 10);
+          if (isNaN(value) || value < 0 || value > MAX_STAT) {
+            return;
+          }
+          setMax(value);
+        }}
+      />
+    </div>
+  );
+}
 
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-      case '0': {
-        let num = parseInt(event.key, 10);
-        if (num === 0) {
-          num = 10;
-        }
-        onSelected(num, event.shiftKey);
-        focused.current = num;
-        break;
-      }
+function StatBar({
+  min,
+  max,
+  range,
+  setMin,
+  setMax,
+  processing,
+}: {
+  range?: MinMaxStat;
+  equippedHashes: Set<number>;
+  min: number;
+  max: number;
+  setMin: (value: number) => void;
+  setMax: (value: number) => void;
+  processing: boolean;
+}) {
+  const [dragging, setDragging] = useState(false);
+  const [dragValue, setDragValue] = useState(0);
+  // Whether we're dragging the max or min value
+  const draggingMax = useRef(false);
+  const lastClickTime = useRef(0);
 
-      default:
-        break;
-    }
+  // Set the live value of min or max based on where the pointer is
+  const setValueToPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    const bar = e.currentTarget;
+    const rect = bar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, clickX / rect.width));
+    const value = Math.round(ratio * MAX_STAT);
+    setDragValue(value);
   };
 
-  // When changing the value via keyboard, update focus
-  useEffect(() => {
-    if (focused.current) {
-      const segment = statBarRef.current?.querySelector(`[data-tier="${focused.current}"]`);
-      (segment as HTMLElement)?.focus();
-      focused.current = undefined;
-    }
-  });
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    setValueToPointer(e);
+  };
 
-  // TODO: enhance the tooltip w/ info about what the LO settings mean (locked, min/max, etc)
-  // TODO: enhance the tooltip w/ info about why the numbers are greyed
+  // Commit the value on pointer up
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const bar = e.currentTarget;
+    bar.releasePointerCapture(e.pointerId);
+    // Detect double-click
+    if (performance.now() - lastClickTime.current < 200 && !draggingMax.current && range) {
+      setMin(range.maxStat);
+    } else {
+      draggingMax.current ? setMax(dragValue) : setMin(dragValue);
+    }
+    setDragging(false);
+    lastClickTime.current = performance.now();
+  };
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    // If you shift-click you set max, or if you click on the max bar first.
+    draggingMax.current = e.shiftKey || (e.target as Element).classList.contains(styles.statBarMax);
+    const bar = e.currentTarget;
+    bar.setPointerCapture(e.pointerId);
+    setValueToPointer(e);
+    setDragging(true);
+  };
+
+  const effectiveMin = dragging && !draggingMax.current ? dragValue : min;
+  const effectiveMax = dragging && draggingMax.current ? dragValue : max;
 
   return (
     <div
-      className={styles.statBar}
-      role="group"
-      ref={statBarRef}
-      aria-label={t('LoadoutBuilder.TierSelect')}
+      className={styles.statRange}
+      title={
+        range &&
+        t('LoadoutBuilder.StatRangeTooltip', {
+          min: range.minStat,
+          max: range.maxStat,
+        })
+      }
+      onPointerDown={handlePointerDown}
+      onPointerUp={dragging ? handlePointerUp : undefined}
+      onPointerMove={dragging ? handlePointerMove : undefined}
     >
-      {Array.from({ length: 11 }, (_, tierNum) => (
+      {range && range.minStat < range.maxStat && (
         <div
-          role="button"
-          tabIndex={tierNum === statTier(statConstraint.minStat) ? 0 : -1}
-          key={tierNum}
-          className={clsx(styles.statBarSegment, {
-            [styles.selectedStatBar]: statTier(statConstraint.minStat) >= tierNum,
-            [styles.maxRestricted]: tierNum > statTier(statConstraint.maxStat),
-            [styles.maxed]: tierNum > statTier(statRange?.maxStat ?? 100),
-          })}
-          onClick={(e) => onSelected(tierNum, e.shiftKey)}
-          onKeyDown={handleKeyDown}
-          data-tier={tierNum}
-          aria-label={t('LoadoutBuilder.TierNumber', { tier: tierNum })}
-        >
-          <PressTip
-            tooltip={
-              <StatTooltip
-                stat={{
-                  hash: statHash,
-                  value: tierNum * 10,
-                  displayProperties: statDef.displayProperties,
-                }}
-                equippedHashes={equippedHashes}
-              />
-            }
-            placement="bottom"
-          >
-            {tierNum}
-          </PressTip>
-        </div>
-      ))}
+          className={clsx(styles.statBarFill, { [styles.processing]: processing })}
+          style={{
+            left: percent(range.minStat / MAX_STAT),
+            width: percent((range.maxStat - range.minStat) / MAX_STAT),
+          }}
+        />
+      )}
+      {(!range || range.minStat !== max) && (
+        <div
+          key="min"
+          className={styles.statBarMin}
+          style={{ left: percent(effectiveMin / MAX_STAT) }}
+        />
+      )}
+      {(!range || range.maxStat !== max) && (
+        <div
+          key="max"
+          className={styles.statBarMax}
+          style={{ left: percent(effectiveMax / MAX_STAT) }}
+        />
+      )}
     </div>
   );
 }

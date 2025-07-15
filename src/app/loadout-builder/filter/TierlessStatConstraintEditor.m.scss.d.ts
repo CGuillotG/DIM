@@ -8,14 +8,16 @@ interface CssExports {
   'iconStat': string;
   'ignored': string;
   'label': string;
-  'maxRestricted': string;
-  'maxed': string;
   'name': string;
+  'processing': string;
+  'processingPulse': string;
   'row': string;
   'rowControl': string;
-  'selectedStatBar': string;
   'statBar': string;
-  'statBarSegment': string;
+  'statBarFill': string;
+  'statBarMax': string;
+  'statBarMin': string;
+  'statRange': string;
 }
 export const cssExports: CssExports;
 export default cssExports;

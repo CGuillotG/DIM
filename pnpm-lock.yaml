@@ -60,8 +60,8 @@ dependencies:
     specifier: ^0.1.13
     version: 0.1.13
   bungie-api-ts:
-    specifier: ^5.2.0
-    version: 5.2.0
+    specifier: ^5.3.0
+    version: 5.3.0
   caniuse-lite:
     specifier: ^1.0.30001724
     version: 1.0.30001724
@@ -431,8 +431,8 @@ devDependencies:
     specifier: ^16.0.5
     version: 16.0.5(sass@1.89.2)(webpack@5.99.9)
   sonda:
-    specifier: ^0.8.2
-    version: 0.8.2
+    specifier: ^0.9.0
+    version: 0.9.0
   source-map-loader:
     specifier: ^5.0.0
     version: 5.0.0(webpack@5.99.9)
@@ -6476,8 +6476,8 @@ packages:
       run-applescript: 7.0.0
     dev: true
 
-  /bungie-api-ts@5.2.0:
-    resolution: {integrity: sha512-iDxvN6jHzU3rdzNNjz8AJxSgfhvjqMD3tAugtZePpD1IEC6eria50MIyGdB1xw5YAp8XZ+BrWkayd0TouZBhEw==}
+  /bungie-api-ts@5.3.0:
+    resolution: {integrity: sha512-e2OvMD5sVNxP2sLuB31xYxFlIExwjDKszDQd+Niuzhj8y1WNSY7ehLwy1ToejY4/WbeF1QHDOrzF0AiRXppD1g==}
     engines: {node: '>=13.2.0'}
     dev: false
 
@@ -13324,8 +13324,8 @@ packages:
       websocket-driver: 0.7.4
     dev: true
 
-  /sonda@0.8.2:
-    resolution: {integrity: sha512-OzLlgd4TVjNzhk+Q7NWrdHc4hAU3gchF9u9ZQ4GcQLKk3IX6OTbaf4U7Itq9XssuuCPVVPTl8p0rGAjBHalxsg==}
+  /sonda@0.9.0:
+    resolution: {integrity: sha512-abMPj/ki+FdVCKkC2tFahz3dMFQi5vlSyx5X8u9rUB6IMX7vWwBdv6rMj9XjE7iuWcf/OYn/jVOcXkIUmHzXUA==}
     engines: {node: '>=20.19 || >=22.12'}
     hasBin: true
     dependencies:
