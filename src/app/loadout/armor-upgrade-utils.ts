@@ -1,8 +1,8 @@
 import { AssumeArmorMasterwork } from '@destinyitemmanager/dim-api-types';
 import { DimItem } from 'app/inventory/item-types';
 import { ArmorEnergyRules } from 'app/loadout-builder/types';
-import { MAX_ARMOR_ENERGY_CAPACITY } from 'app/search/d2-known-values';
-import { isArtifice } from 'app/utils/item-utils';
+import { maxEnergyCapacity } from 'app/search/d2-known-values';
+import { isArtifice, isEdgeOfFateArmorMasterwork } from 'app/utils/item-utils';
 
 /**
  * Gets the max energy we can use on this item, based on its current energy
@@ -16,26 +16,29 @@ export function calculateAssumedItemEnergy(
   if (!item.energy) {
     return 0;
   }
+  // Note: Since Edge of Fate, all new armor drops at max energy.
   const itemEnergy = item.energy.energyCapacity;
   const assumedEnergy =
     assumeArmorMasterwork === AssumeArmorMasterwork.All ||
     assumeArmorMasterwork === AssumeArmorMasterwork.ArtificeExotic ||
     (assumeArmorMasterwork === AssumeArmorMasterwork.Legendary && !item.isExotic)
-      ? // TODO: Edge of Fate: Tier 5 armor can have 11 energy - would be great if
-        // we could read this from the item's energy info.
-        MAX_ARMOR_ENERGY_CAPACITY
+      ? maxEnergyCapacity(item)
       : minItemEnergy;
   return Math.max(itemEnergy, assumedEnergy);
 }
 
 /**
- * as of TFS, [relevant, modern] exotics can use artifice stat mods, if the user pays to enhance the armor
+ * As of TFS, [relevant, modern] exotics could be upgraded to have an artifice
+ * mod slot. As of Edge of Fate / Armor 3.0, all new drops of exotics *cannot*
+ * be enhanced to have artifice stats, and exotic class items have been stripped
+ * of their artifice stat slot.
  */
 export function isAssumedArtifice(item: DimItem, { assumeArmorMasterwork }: ArmorEnergyRules) {
   return (
     (item.isExotic &&
       item.energy &&
-      assumeArmorMasterwork === AssumeArmorMasterwork.ArtificeExotic) ||
+      assumeArmorMasterwork === AssumeArmorMasterwork.ArtificeExotic &&
+      !isEdgeOfFateArmorMasterwork(item)) ||
     isArtifice(item)
   );
 }
