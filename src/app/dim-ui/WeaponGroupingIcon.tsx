@@ -27,16 +27,16 @@ export default function WeaponGroupingIcon({
 
     case 'weaponAmmoType': {
       const typeIcon = getWeaponTypeSvgIconFromCategoryHashes(icon.itemCategoryHashes);
-      let weaponTypeClass = styles.weaponTypeIcon;
+      let weaponAmmoClassName = styles.weaponTypeIcon;
       if (icon.ammoType === DestinyAmmunitionType.Heavy) {
-        weaponTypeClass = styles.weaponTypeIconHeavy;
+        weaponAmmoClassName = styles.weaponTypeIconHeavy;
       } else if (icon.ammoType === DestinyAmmunitionType.Special) {
-        weaponTypeClass = styles.weaponTypeIconSpecial;
+        weaponAmmoClassName = styles.weaponTypeIconSpecial;
       }
       return (
         typeIcon && (
           <div className={className}>
-            <img src={typeIcon.svg} className={weaponTypeClass} />
+            <img src={typeIcon.svg} className={weaponAmmoClassName} />
           </div>
         )
       );
