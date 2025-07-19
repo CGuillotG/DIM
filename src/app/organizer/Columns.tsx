@@ -117,7 +117,9 @@ export const perkStringSort: Comparator<string | undefined> = (a, b) => {
       bi++;
       continue;
     }
-    return aPart.localeCompare(bPart) as 1 | 0 | -1;
+    // Disrupt normal alphabetization by making empty string (no interesting information) sort to last.
+    // (the "both are blank" condition is already ruled out above)
+    return !aPart ? 1 : !bPart ? -1 : (aPart.localeCompare(bPart) as 1 | 0 | -1);
   }
   return 0;
 };
@@ -1135,7 +1137,6 @@ function PerksCell({
                   [styles.perkSelected]:
                     socket.isPerk && socket.plugOptions.length > 1 && p === socket.plugged,
                   [styles.perkSelectable]: socket.plugOptions.length > 1,
-                  [styles.enhancedArrow]: isEnhancedPerk(p.plugDef),
                 })}
                 data-filter-value={p.plugDef.displayProperties.name}
                 onClick={
@@ -1152,7 +1153,13 @@ function PerksCell({
                 <div className={styles.miniPerkContainer}>
                   <DefItemIcon itemDef={p.plugDef} borderless={true} />
                 </div>
-                {p.plugDef.displayProperties.name}
+                <span
+                  className={clsx({
+                    [styles.enhancedArrow]: isEnhancedPerk(p.plugDef),
+                  })}
+                >
+                  {p.plugDef.displayProperties.name}
+                </span>
               </div>
             </PressTip>
           ))}
