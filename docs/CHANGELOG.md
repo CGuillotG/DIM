@@ -1,5 +1,9 @@
 ## Next
 
+* Fixed an issue where the Loadout Optimizer would consider Armor 3.0 and Armor 2.0 versions of exotics separately. Now, if you select an exotic, all your copies of that exotic will be considered.
+
+## 8.83.0 <span class="changelog-date">(2025-07-27)</span>
+
 * DIMmit is back, for all your changelog notifications.
 * DIM now shows a placeholder and warning when your Silver balance is not available from Bungie.net.
 * Updated item tier display in the Item Popup.
@@ -12,6 +16,7 @@
 * Increased the contrast of red numbers against a black background.
 * Removed empty perks that could appear in the Armory on craftable items.
 * Added hover highlighting for the power formula and material counts buttons.
+* Possible Set Bonuses are now displayed in the Armor Popup.
 
 ## 8.82.2 <span class="changelog-date">(2025-07-22)</span>
 
