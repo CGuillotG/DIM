@@ -1,8 +1,11 @@
 import { EnergyIncrementsWithPresstip } from 'app/dim-ui/EnergyIncrements';
 import { t } from 'app/i18next-t';
 import { useItemPicker } from 'app/item-picker/item-picker';
+import PlugDef from 'app/loadout/loadout-ui/PlugDef';
 import Sockets from 'app/loadout/loadout-ui/Sockets';
 import { AppIcon, faRandom, lockIcon } from 'app/shell/icons';
+import { getArmorArchetypeSocket } from 'app/utils/socket-utils';
+import { DestinyClass } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
 import { PlugCategoryHashes } from 'data/d2/generated-enums';
 import { Dispatch } from 'react';
@@ -93,6 +96,8 @@ export default function GeneratedSetItem({
     }
   };
 
+  const archetype = getArmorArchetypeSocket(item)?.plugged!.plugDef;
+
   return (
     <div>
       <div className={styles.item}>
@@ -112,16 +117,22 @@ export default function GeneratedSetItem({
             >
               <AppIcon icon={faRandom} />
             </button>
+          ) : pinned ? (
+            <button
+              type="button"
+              className={styles.swapButton}
+              title={t('LoadoutBuilder.UnlockItem')}
+              onClick={unpinItem}
+            >
+              <AppIcon icon={lockIcon} />
+            </button>
           ) : (
-            pinned && (
-              <button
-                type="button"
-                className={styles.swapButton}
-                title={t('LoadoutBuilder.UnlockItem')}
-                onClick={unpinItem}
-              >
-                <AppIcon icon={lockIcon} />
-              </button>
+            archetype && (
+              <PlugDef
+                className={styles.archetype}
+                forClassType={DestinyClass.Unknown}
+                plug={archetype}
+              />
             )
           )}
         </div>
