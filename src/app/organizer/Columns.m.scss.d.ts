@@ -4,7 +4,7 @@ interface CssExports {
   'centered': string;
   'dmg': string;
   'dmgHeader': string;
-  'enhancedArrow': string;
+  'enhancedIcon': string;
   'hasFilter': string;
   'header': string;
   'headerRow': string;

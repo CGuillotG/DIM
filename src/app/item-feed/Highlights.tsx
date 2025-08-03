@@ -52,14 +52,12 @@ export default function Highlights({ item }: { item: DimItem }) {
                   tooltip={() => <DimPlugTooltip item={item} plug={p} />}
                   className={styles.perk}
                 >
-                  <DefItemIcon itemDef={p.plugDef} borderless={true} />
-                  <span
-                    className={clsx({
-                      [styles.enhancedArrow]: isEnhancedPerk(p.plugDef),
-                    })}
-                  >
-                    {p.plugDef.displayProperties.name}
-                  </span>
+                  <DefItemIcon
+                    itemDef={p.plugDef}
+                    borderless={true}
+                    className={clsx({ [styles.enhancedIcon]: isEnhancedPerk(p.plugDef) })}
+                  />
+                  <span>{p.plugDef.displayProperties.name}</span>
                 </PressTip>
               ))}
             </div>

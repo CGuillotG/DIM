@@ -161,18 +161,11 @@
 .perkSelectable {
   cursor: pointer;
 }
-// copy pasted from src/app/item-popup/PlugTooltip.m.scss
-.enhancedArrow {
-  &::before {
-    content: '';
-    display: inline-block;
-    width: 9px;
-    height: 16px;
-    vertical-align: text-bottom;
-    mask-image: url('images/enhancedArrow.svg');
-    background-color: $enhancedYellow;
-    margin-right: 3px;
-  }
+
+.enhancedIcon {
+  /* Filter to tint white PNGs to #f3cf55 */
+  filter: brightness(0) saturate(100%) invert(75%) sepia(58%) saturate(442%) hue-rotate(360deg)
+    brightness(103%) contrast(91%);
 }
 
 .perksGrid {
