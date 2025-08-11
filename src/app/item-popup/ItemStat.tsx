@@ -14,7 +14,7 @@ import {
   weaponParts,
 } from 'app/search/d2-known-values';
 import { getD1QualityColor, percent } from 'app/shell/formatters';
-import { AppIcon, helpIcon } from 'app/shell/icons';
+import { AppIcon, helpIcon, tuningStatIcon } from 'app/shell/icons';
 import { userGuideUrl } from 'app/shell/links';
 import { sumBy } from 'app/utils/collections';
 import { compareBy, reverseComparator } from 'app/utils/comparators';
@@ -55,7 +55,20 @@ type StatSegments = [value: number, statSegmentType: StatSegmentType, modName?: 
 /**
  * A single stat line.
  */
-export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem }) {
+export default function ItemStat({
+  stat,
+  item,
+  itemStatInfo,
+}: {
+  stat: DimStat;
+  item?: DimItem;
+  itemStatInfo?: {
+    /** Stat hash the item's tuning slot affects */
+    tunedStatHash?: number;
+    /** Results from getArmor3StatFocus */
+    statFocus?: StatHashes[];
+  };
+}) {
   const showQuality = useSelector(settingSelector('itemQuality'));
   const customStatsList = useSelector(customStatsSelector);
   const customStatHashes = customStatsList.map((c) => c.statHash);
@@ -84,9 +97,10 @@ export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem
   const masterworkValue =
     item?.masterworkInfo?.stats?.find((s) => s.hash === stat.statHash)?.value ?? 0;
   // This bool controls the stat name being gold
-  const isMasterworkedStat = masterworkValue !== 0;
+  const isMasterworkedStat = !item?.bucket.inArmor && masterworkValue !== 0;
   const masterworkDisplayValue = masterworkValue || armorMasterworkValue;
   let masterworkDisplayWidth = masterworkDisplayValue || 0;
+
   // baseBar here is the leftmost segment of the stat bar.
   // For armor, this is the "roll," the sum of its invisible stat plugs.
   // For weapons, this is the default base stat in its item definition, before barrels/mags/etc.
@@ -136,6 +150,9 @@ export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem
     [styles.negativeModded]: modSign < 0,
     [styles.totalRow]: Boolean(totalDetails),
     [styles.customTotal]: customStatHashes.includes(stat.statHash),
+    [styles.archetypeStat]:
+      itemStatInfo?.statFocus?.[0] === stat.statHash ||
+      itemStatInfo?.statFocus?.[1] === stat.statHash,
   };
 
   return (
@@ -145,6 +162,9 @@ export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem
         aria-label={stat.displayProperties.name}
         title={stat.displayProperties.description}
       >
+        {stat.statHash === itemStatInfo?.tunedStatHash && (
+          <AppIcon icon={tuningStatIcon} className={styles.tunableSymbol} />
+        )}{' '}
         {stat.statHash in statLabels
           ? t(statLabels[stat.statHash as StatHashes]!)
           : stat.displayProperties.name}

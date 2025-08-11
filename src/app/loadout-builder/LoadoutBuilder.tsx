@@ -1,4 +1,8 @@
-import { LoadoutParameters, StatConstraint } from '@destinyitemmanager/dim-api-types';
+import {
+  LoadoutParameters,
+  SetBonusCounts,
+  StatConstraint,
+} from '@destinyitemmanager/dim-api-types';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { savedLoStatConstraintsByClassSelector } from 'app/dim-api/selectors';
 import CharacterSelect from 'app/dim-ui/CharacterSelect';
@@ -54,6 +58,7 @@ import {
   LoadoutOptimizerExcludedItems,
   LoadoutOptimizerPinnedItems,
 } from './filter/LoadoutOptimizerMenuItems';
+import LoadoutOptimizerSetBonus from './filter/LoadoutOptimizerSetBonus';
 import NewFeaturedGearFilter from './filter/NewFeaturedGearFilter';
 import TierlessStatConstraintEditor from './filter/TierlessStatConstraintEditor';
 import CompareLoadoutsDrawer from './generated-sets/CompareLoadoutsDrawer';
@@ -129,6 +134,7 @@ export default memo(function LoadoutBuilder({
   const autoStatMods = Boolean(loadoutParameters.autoStatMods);
   const includeRuntimeStatBenefits = loadoutParameters.includeRuntimeStatBenefits ?? true;
   const assumeArmorMasterwork = loadoutParameters.assumeArmorMasterwork;
+  const setBonuses = loadoutParameters.setBonuses ?? emptyObject<SetBonusCounts>();
   const classType = loadout.classType;
 
   const selectedStore = stores.find((store) => store.id === selectedStoreId)!;
@@ -230,6 +236,7 @@ export default memo(function LoadoutBuilder({
       lockedExoticHash,
       armorEnergyRules,
       searchFilter,
+      setBonuses,
     });
     return [armorEnergyRules, items, filterInfo];
   }, [
@@ -242,6 +249,7 @@ export default memo(function LoadoutBuilder({
     unassignedMods,
     lockedExoticHash,
     searchFilter,
+    setBonuses,
   ]);
 
   const modStatChanges = useMemo(
@@ -261,6 +269,7 @@ export default memo(function LoadoutBuilder({
   const { result, processing } = useProcess({
     selectedStore,
     filteredItems,
+    setBonuses,
     lockedModMap,
     modStatChanges,
     armorEnergyRules,
@@ -348,6 +357,14 @@ export default memo(function LoadoutBuilder({
         vendorItems={vendorItems}
         lbDispatch={lbDispatch}
         storeId={selectedStore.id}
+        className={styles.loadoutEditSection}
+      />
+      <LoadoutOptimizerSetBonus
+        storeId={selectedStore.id}
+        classType={selectedStore.classType}
+        vendorItems={vendorItems}
+        lbDispatch={lbDispatch}
+        setBonuses={setBonuses}
         className={styles.loadoutEditSection}
       />
       <LoadoutEditModsSection

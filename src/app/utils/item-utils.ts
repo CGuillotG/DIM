@@ -18,7 +18,7 @@ import {
   killTrackerObjectivesByHash,
   killTrackerSocketTypeHash,
 } from 'app/search/d2-known-values';
-import { damageNamesByEnum, riteOfTheNineShinyWeapons } from 'app/search/search-filter-values';
+import { damageNamesByEnum } from 'app/search/search-filter-values';
 import modSocketMetadata, {
   ModSocketMetadata,
   modTypeTagByPlugCategoryHash,
@@ -33,6 +33,7 @@ import {
   StatHashes,
 } from 'data/d2/generated-enums';
 import { filterMap, objectifyArray } from './collections';
+import { getArmor3TuningSocket } from './socket-utils';
 
 // damage is a mess!
 // this function supports turning a destiny DamageType into a known english name
@@ -321,12 +322,11 @@ export function isArtificeSocket(socket: DimSocket) {
  * Is this the new-style armor masterwork in Edge of Fate that grants +1 to the three lower stats per tier?
  */
 // TODO: May want to switch this to isLegacyArmorMasterwork eventually
-// TODO: Maybe replace this with "isArmor3"?
-export function isEdgeOfFateArmorMasterwork(item: DimItem) {
-  return Boolean(item.sockets?.allSockets.some(isEdgeOfFateArmorMasterworkSocket));
+export function isArmor3(item: DimItem) {
+  return Boolean(item.sockets?.allSockets.some(isArmor3MasterworkSocket));
 }
 
-export function isEdgeOfFateArmorMasterworkSocket(socket: DimSocket) {
+export function isArmor3MasterworkSocket(socket: DimSocket) {
   return (
     socket.plugged?.plugDef.plug.plugCategoryHash === PlugCategoryHashes.V460PlugsArmorMasterworks
   );
@@ -352,19 +352,6 @@ export function isClassCompatible(firstClass: DestinyClass, secondClass: Destiny
  */
 export function isItemLoadoutCompatible(itemClass: DestinyClass, loadoutClass: DestinyClass) {
   return itemClass === DestinyClass.Unknown || itemClass === loadoutClass;
-}
-
-/** "shiny" items, special-edition items from Into The Light, with a unique ornament and extra perks */
-export function braveShiny(item: DimItem) {
-  return item.sockets?.allSockets.some(
-    (s) =>
-      s.plugOptions.some((s) => s.plugDef.plug.plugCategoryIdentifier === 'holofoil_skins_shared'), //
-  );
-}
-
-/** Rite of the Nine "shiny" weapons with a unique appearance the the diagonal stripes */
-export function riteShiny(item: DimItem) {
-  return riteOfTheNineShinyWeapons.has(item.hash);
 }
 
 const ichToBreakerType = Object.entries(artifactBreakerMods).reduce<
@@ -430,10 +417,40 @@ export function itemTypeName(item: DimItem) {
 
 /**
  * Returns [primary stat hash, secondary stat hash, tertiary stat hash] for armor 3.0.
- * Make sure the item is armor 3.0 upstream.
+ * Make sure the item is armor 3.0 upstream or these stat rankings might be misleading.
  */
 export function getArmor3StatFocus(item: DimItem): StatHashes[] {
   return (item.stats?.filter((s) => s.statHash > 0 && s.base > 0) ?? [])
     .sort((a, b) => b.base - a.base)
     .map((s) => s.statHash);
+}
+
+/**
+ * Returns the stat hash of the item's tunable stat.
+ * This stat can be upgraded at the cost of another stat.
+ *
+ * This heuristic relies on the following assumptions:
+ * - Every armor with tuning has Balanced Tuning (3122197216) which provides +1 to several stats.
+ * - Armor with e.g. a melee tuning, has several available plugs which raise Melee stat by 5 (and none which raise other stats by that much)
+ */
+export function getArmor3TuningStat(
+  item: DimItem,
+  defs: D2ManifestDefinitions,
+): number | undefined {
+  const reusablePlugItems = item.bucket.inArmor
+    ? getArmor3TuningSocket(item)?.reusablePlugItems
+    : undefined;
+  if (!reusablePlugItems?.length) {
+    return;
+  }
+
+  for (const reusablePlug of reusablePlugItems) {
+    const positiveHash = defs.InventoryItem.get(reusablePlug.plugItemHash).investmentStats.find(
+      (s) => s.value > 1,
+    );
+    if (positiveHash) {
+      return positiveHash.statTypeHash;
+    }
+  }
+  return undefined;
 }

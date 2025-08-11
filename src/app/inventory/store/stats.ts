@@ -13,7 +13,6 @@ import {
   DestinyStatDisplayDefinition,
   DestinyStatGroupDefinition,
 } from 'bungie-api-ts/destiny2';
-import adeptWeaponHashes from 'data/d2/adept-weapon-hashes.json';
 import { ItemCategoryHashes, StatHashes } from 'data/d2/generated-enums';
 import { once, partition } from 'es-toolkit';
 import { Draft } from 'immer';
@@ -383,20 +382,23 @@ function applyPlugsToStats(
   }
 }
 
-/**
- * Adept raid weapons that were randomly acquired can be enhanced to get an enhanced intrinsic,
- * at which point they're functionally crafted.
- * Their intrinsic says "conditionally +2 to some stats", but they get +3 because that's how
- * masterworked adepts behave, and an additional +1 by reaching weapon level 20. There's no
- * basis for this behavior in the defs, so we cheat when we calculate live stats and attribute
- * these stats to the intrinsic since that's the "masterwork".
- */
 function getPlugStatValue(createdItem: DimItem, stat: DimPlugInvestmentStat) {
-  if (
-    stat.activationRule?.rule === 'enhancedIntrinsic' &&
-    adeptWeaponHashes.includes(createdItem.hash)
-  ) {
+  // Adept raid weapons that were randomly acquired can be enhanced to get an
+  // enhanced intrinsic, at which point they're functionally crafted. Their
+  // intrinsic says "conditionally +2 to some stats", but they get +3 because
+  // that's how masterworked adepts behave, and an additional +1 by reaching
+  // weapon level 20. There's no basis for this behavior in the defs, so we
+  // cheat when we calculate live stats and attribute these stats to the
+  // intrinsic since that's the "masterwork".
+  if (stat.activationRule?.rule === 'enhancedIntrinsic' && createdItem.adept) {
     return stat.value + ((createdItem.craftedInfo?.level ?? 0) >= 20 ? 2 : 1);
+  }
+
+  // Tiered weapons at max masterwork get +tier to every stat ("Applies
+  // additional stats to this weapon equal to the weapon's tier"). There's
+  // nothing in the defs to indicate this.
+  if (stat.activationRule?.rule === 'tieredWeaponMW') {
+    return stat.value + createdItem.tier;
   }
 
   return stat.value;

@@ -46,6 +46,7 @@ export const DEFAULT_ORNAMENTS: number[] = [
   2931483505, // InventoryItem "Default Ornament" Restores your weapon to its default appearance.
   1959648454, // InventoryItem "Default Ornament" Restores your weapon to its default appearance.
   702981643, // InventoryItem "Default Ornament" Restores your armor to its default appearance.
+  3854296178, // InventoryItem "Default Ornament" Restores your armor to its default appearance.
 ];
 
 /** a weird set of 3 solstice ornaments that provide a single resilience stat point */
@@ -106,14 +107,34 @@ export const CUSTOM_TOTAL_STAT_HASH = -111000;
 /** hashes representing D2 PL stats */
 export const D2LightStats = [StatHashes.Attack, StatHashes.Defense, StatHashes.Power];
 
-/** these stats canonically exist on D2 armor */
-export const D2ArmorStatHashByName = {
+/**
+ * Lookup with `'weapons' -> StatHashes.Weapons` etc.
+ *
+ * Only the 6 real armor 3.0 stats.
+ */
+export const realD2ArmorStatHashByName: StringLookup<StatHashes> = {
   weapons: StatHashes.Weapons,
   health: StatHashes.Health,
   class: StatHashes.Class,
   grenade: StatHashes.Grenade,
   super: StatHashes.Super,
   melee: StatHashes.Melee,
+};
+
+/**
+ * Lookup with `StatHashes.Weapons -> 'weapons'` etc.
+ *
+ * Only the 6 real armor stats.
+ */
+export const realD2ArmorStatSearchByHash = invert(realD2ArmorStatHashByName);
+
+/**
+ * Lookup with `'weapons' -> StatHashes.Weapons` etc.
+ *
+ * Includes keys with the old armor 2.0 stat names.
+ */
+export const D2ArmorStatHashByName: StringLookup<StatHashes> = {
+  ...realD2ArmorStatHashByName,
   // We keep the old names for now, both for D1 compatibility and for existing saved
   // searches. In the future we could have a different map for D1 names and D2
   // names.
@@ -124,16 +145,6 @@ export const D2ArmorStatHashByName = {
   intellect: StatHashes.Super,
   strength: StatHashes.Melee,
 } as const;
-
-export const realD2ArmorStatHashByName: StringLookup<StatHashes> = {
-  weapons: StatHashes.Weapons,
-  health: StatHashes.Health,
-  class: StatHashes.Class,
-  grenade: StatHashes.Grenade,
-  super: StatHashes.Super,
-  melee: StatHashes.Melee,
-};
-export const realD2ArmorStatSearchByHash = invert(realD2ArmorStatHashByName);
 
 /** Stats that all (D2) armor should have, ordered by how they're displayed in game. */
 export const armorStats: ArmorStatHashes[] = [
@@ -389,6 +400,7 @@ export const enum ModsWithConditionalStats {
   EnhancedElementalCapacitor = 711234314, // InventoryItem "Elemental Capacitor"
   EchoOfPersistence = 2272984671, // InventoryItem "Echo of Persistence"
   SparkOfFocus = 1727069360, // InventoryItem "Spark of Focus"
+  BalancedTuning = 3122197216, // InventoryItem "Balanced Tuning"
 }
 
 export const ARTIFICE_PERK_HASH = 3727270518; // InventoryItem "Artifice Armor"
