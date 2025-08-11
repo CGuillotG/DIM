@@ -1,7 +1,8 @@
 import { CustomStatWeights } from '@destinyitemmanager/dim-api-types';
 import { DimItem } from 'app/inventory/item-types';
 import { ArmorStatHashes } from 'app/loadout-builder/types';
-import { HashLookup } from 'app/utils/util-types';
+import { invert } from 'app/utils/collections';
+import { HashLookup, StringLookup } from 'app/utils/util-types';
 import { TierType } from 'bungie-api-ts/destiny2';
 
 import {
@@ -45,6 +46,7 @@ export const DEFAULT_ORNAMENTS: number[] = [
   2931483505, // InventoryItem "Default Ornament" Restores your weapon to its default appearance.
   1959648454, // InventoryItem "Default Ornament" Restores your weapon to its default appearance.
   702981643, // InventoryItem "Default Ornament" Restores your armor to its default appearance.
+  3854296178, // InventoryItem "Default Ornament" Restores your armor to its default appearance.
 ];
 
 /** a weird set of 3 solstice ornaments that provide a single resilience stat point */
@@ -105,14 +107,34 @@ export const CUSTOM_TOTAL_STAT_HASH = -111000;
 /** hashes representing D2 PL stats */
 export const D2LightStats = [StatHashes.Attack, StatHashes.Defense, StatHashes.Power];
 
-/** these stats canonically exist on D2 armor */
-export const D2ArmorStatHashByName = {
+/**
+ * Lookup with `'weapons' -> StatHashes.Weapons` etc.
+ *
+ * Only the 6 real armor 3.0 stats.
+ */
+export const realD2ArmorStatHashByName: StringLookup<StatHashes> = {
   weapons: StatHashes.Weapons,
   health: StatHashes.Health,
   class: StatHashes.Class,
   grenade: StatHashes.Grenade,
   super: StatHashes.Super,
   melee: StatHashes.Melee,
+};
+
+/**
+ * Lookup with `StatHashes.Weapons -> 'weapons'` etc.
+ *
+ * Only the 6 real armor stats.
+ */
+export const realD2ArmorStatSearchByHash = invert(realD2ArmorStatHashByName);
+
+/**
+ * Lookup with `'weapons' -> StatHashes.Weapons` etc.
+ *
+ * Includes keys with the old armor 2.0 stat names.
+ */
+export const D2ArmorStatHashByName: StringLookup<StatHashes> = {
+  ...realD2ArmorStatHashByName,
   // We keep the old names for now, both for D1 compatibility and for existing saved
   // searches. In the future we could have a different map for D1 names and D2
   // names.
@@ -218,6 +240,26 @@ export const DEEPSIGHT_HARMONIZER = 2228452164;
 
 // For loadout mods obliterated from the defs, we instead return this def
 export const deprecatedPlaceholderArmorModHash = 3947616002; // InventoryItem "Deprecated Armor Mod"
+
+// used in displaying the component segments on item stats
+export const weaponParts = new Set<PlugCategoryHashes | undefined>([
+  PlugCategoryHashes.Bowstrings,
+  PlugCategoryHashes.Batteries,
+  PlugCategoryHashes.Blades,
+  PlugCategoryHashes.Tubes,
+  PlugCategoryHashes.Scopes,
+  PlugCategoryHashes.Hafts,
+  PlugCategoryHashes.Stocks,
+  PlugCategoryHashes.Guards,
+  PlugCategoryHashes.Barrels,
+  PlugCategoryHashes.Arrows,
+  PlugCategoryHashes.Grips,
+  PlugCategoryHashes.Scopes,
+  PlugCategoryHashes.Magazines,
+  PlugCategoryHashes.MagazinesGl,
+  PlugCategoryHashes.Rails,
+  PlugCategoryHashes.Bolts,
+]);
 
 //
 // BUCKETS KNOWN VALUES
@@ -358,6 +400,7 @@ export const enum ModsWithConditionalStats {
   EnhancedElementalCapacitor = 711234314, // InventoryItem "Elemental Capacitor"
   EchoOfPersistence = 2272984671, // InventoryItem "Echo of Persistence"
   SparkOfFocus = 1727069360, // InventoryItem "Spark of Focus"
+  BalancedTuning = 3122197216, // InventoryItem "Balanced Tuning"
 }
 
 export const ARTIFICE_PERK_HASH = 3727270518; // InventoryItem "Artifice Armor"

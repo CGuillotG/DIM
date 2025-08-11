@@ -1,5 +1,30 @@
 ## Next
 
+## 8.85.0 <span class="changelog-date">(2025-08-10)</span>
+
+* Improved the responsiveness of draggable lists (Loadout Optimizer stat constraints, inventory sort order, etc.)
+* Fixed an issue where the loadout analysis on the Loadouts page treated Armor 2.0 and Armor 3.0 versions of exotics separately.
+* BETA ONLY: The new-item dot, `is:new` search, and new-item Organizer column have been removed. You can use the Item Feed to keep track of new drops.
+* Adjust text spacing for item popup headers when tier/season banner are present
+* Added an `is:holofoil` search.
+* Add the bonus to all stats for tier 10 masterwork on new weapons.
+* Item icons in the item feed will dim if the items do not match the current search.
+* Added a scrollbar to the item feed
+* Fix showing default ornament icon for new weapons in Armory
+* Added `tunedstat:` filter for finding Tier 5 items with specific tuners.
+* Highlighted Archetype and Tuned stats in the item popup.
+* The Balanced Tuning mod now correctly applies +1 only to the three lowest armor stats
+* Remove repeated stat info in perk descriptions
+* Fixed Assume Masterwork for tiered weapons in Compare
+* Show the armor masterwork socket for tiered armor
+* Correctly calculate the masterwork level for tiered armor
+* Add the ability to specify Set Bonuses in the Loadout Optimizer
+* Set Bonus names and perks are filterable via `perk:` `exactperk:` or free text search.
+* `is:statlower` now knows how to compare all the possible stat arrangements of armor with Tier 5 tuning mods, allowing you to find more strictly-worse items.
+* `is:statlower` now compares armor as if it has been masterworked, so an unmasterworked piece won't be considered worse than a masterworked piece if it would actually be better after masterworking.
+
+## 8.84.0 <span class="changelog-date">(2025-08-03)</span>
+
 * Fixed an issue where the Loadout Optimizer would consider Armor 3.0 and Armor 2.0 versions of exotics separately. Now, if you select an exotic, all your copies of that exotic will be considered.
 * Updated the order of search suggestions to prioritize `is:` filters.
 * Display armor archetypes in Loadout Optimizer.
@@ -10,6 +35,11 @@
 * Hid the masterwork upgrade socket in the item popup for new armor.
 * Added a catalyst icon for the Osteo Striga.
 * Removed some uninteresting materials from the material counts display.
+* Added stat ordinality armor filters like `primarystat:super` and `tertiarystat:grenade`.
+* Add another compare button to highlight Armor 3.0 with the same 3 base stats.
+* When you open Loadout Optimizer with the "Equipped" loadout, the loadout parameters you select will now be saved as the default for that class. This was already true if you entered Loadout Optimizer by clicking the "Loadout Optimizer" button. Editing an existing loadout does not save the parameters as a default.
+* When we save Loadout Optimizer defaults, we'll save the min/max setting for each stat now, not just whether it's enabled and what order.
+* Fix "enhanced" detection to highlight barrels, magazines, etc.
 
 ## 8.83.0 <span class="changelog-date">(2025-07-27)</span>
 

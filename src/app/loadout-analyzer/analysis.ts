@@ -1,6 +1,7 @@
 import {
   AssumeArmorMasterwork,
   LoadoutParameters,
+  SetBonusCounts,
   defaultLoadoutParameters,
 } from '@destinyitemmanager/dim-api-types';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
@@ -103,6 +104,12 @@ export async function analyzeLoadout(
   const loadoutArmor = resolvedLoadout.resolvedLoadoutItems
     .filter((item) => item.loadoutItem.equip && item.item.bucket.inArmor)
     .map(({ item }) => item);
+  const setBonuses = loadoutArmor.reduce((setBonuses: SetBonusCounts, item) => {
+    if (item.setBonus) {
+      setBonuses[item.setBonus.hash] = (setBonuses[item.setBonus.hash] || 0) + 1;
+    }
+    return setBonuses;
+  }, {});
 
   const { modMap, unassignedMods } = categorizeArmorMods(originalModDefs, allItems);
   if (unassignedMods.length) {
@@ -133,7 +140,11 @@ export async function analyzeLoadout(
       loadoutArmor.find((i) => i.isExotic) ??
       resolvedLoadout.failedResolvedLoadoutItems.find((i) => i.item.isExotic && i.loadoutItem.equip)
         ?.item;
-    const [valid, newHash] = matchesExoticArmorHash(loadoutParameters.exoticArmorHash, exotic);
+    const [valid, newHash] = matchesExoticArmorHash(
+      loadoutParameters.exoticArmorHash,
+      exotic,
+      defs,
+    );
     if (!valid) {
       findings.add(LoadoutFinding.DoesNotRespectExotic);
     }
@@ -268,6 +279,7 @@ export async function analyzeLoadout(
             lockedExoticHash: loadoutParameters.exoticArmorHash,
             armorEnergyRules,
             searchFilter: itemFilter,
+            setBonuses: loadoutParameters.setBonuses,
           });
           // If the item filter loadout armor that was previously included,
           // this is due to the search filter since we've previously established
@@ -315,6 +327,7 @@ export async function analyzeLoadout(
               autoModDefs,
               autoStatMods: loadoutParameters.autoStatMods,
               filteredItems,
+              setBonuses,
               lockedModMap: modMap,
               modStatChanges,
               desiredStatRanges: mergedDesiredStatRanges,
@@ -363,6 +376,7 @@ export async function analyzeLoadout(
 function matchesExoticArmorHash(
   exoticArmorHash: number | undefined,
   exotic: DimItem | undefined,
+  defs: D2ManifestDefinitions,
 ): [valid: boolean, exoticArmorHash: number | undefined] {
   if (exoticArmorHash === LOCKED_EXOTIC_NO_EXOTIC) {
     return [!exotic, exoticArmorHash];
@@ -371,7 +385,11 @@ function matchesExoticArmorHash(
   } else if (exoticArmorHash === undefined) {
     return [true, exotic?.hash];
   } else {
-    return [exoticArmorHash === exotic?.hash, exoticArmorHash];
+    return [
+      defs.InventoryItem.get(exoticArmorHash).displayProperties.name ===
+        (exotic && defs.InventoryItem.get(exotic.hash).displayProperties.name),
+      exoticArmorHash,
+    ];
   }
 }
 

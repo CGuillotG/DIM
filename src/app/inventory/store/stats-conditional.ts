@@ -2,12 +2,7 @@ import { ModsWithConditionalStats } from 'app/search/d2-known-values';
 import { filterMap } from 'app/utils/collections';
 import { infoLog, warnLog } from 'app/utils/log';
 import { weakMemoize } from 'app/utils/memoize';
-import {
-  DestinyClass,
-  DestinyInventoryItemDefinition,
-  DestinyItemInvestmentStatDefinition,
-} from 'bungie-api-ts/destiny2';
-import adeptWeaponHashes from 'data/d2/adept-weapon-hashes.json';
+import { DestinyClass, DestinyItemInvestmentStatDefinition } from 'bungie-api-ts/destiny2';
 import enhancedIntrinsics from 'data/d2/crafting-enhanced-intrinsics';
 import { PlugCategoryHashes, StatHashes, TraitHashes } from 'data/d2/generated-enums';
 import masterworksWithCondStats from 'data/d2/masterworks-with-cond-stats.json';
@@ -25,7 +20,7 @@ import {
  * when the stat is always active.
  */
 function getPlugInvestmentStatActivationRule(
-  itemDef: DestinyInventoryItemDefinition,
+  itemDef: PluggableInventoryItemDefinition,
   stat: DestinyItemInvestmentStatDefinition,
 ): PlugStatActivationRule | undefined {
   // Some Exotic weapon catalysts can be inserted even though the catalyst objectives are incomplete.
@@ -33,6 +28,21 @@ function getPlugInvestmentStatActivationRule(
   // We'll assume that the item can only be masterworked if its associated catalyst has been completed.
   if (itemDef.traitHashes?.includes(TraitHashes.ItemExoticCatalyst)) {
     return { rule: 'masterwork' };
+  }
+
+  // Check if this is a tiered weapon masterwork plug stat. The new-style tiered
+  // weapon masterwork plugs have a single unconditional stat at value 10, and
+  // the rest are at value 0, while the old-style masterwork plugs have a single
+  // unconditional stat at value 10, and the rest are at value 3. The new style
+  // masterwork plugs add +tier to *every* stat, even the masterwork stat.
+  if (
+    itemDef.plug.uiPlugLabel === 'masterwork' &&
+    ((stat.isConditionallyActive && stat.value === 0) ||
+      (!stat.isConditionallyActive &&
+        stat.value === 10 &&
+        itemDef.investmentStats.some((s) => s.isConditionallyActive && s.value === 0)))
+  ) {
+    return { rule: 'tieredWeaponMW' };
   }
 
   // When adding new conditions here that bypass `stat.isConditionallyActive`, update
@@ -45,16 +55,21 @@ function getPlugInvestmentStatActivationRule(
 
   // These are preview stats for the Adept enhancing plugs to indicate that enhancing
   // implicitly upgrades the masterwork to T10
-  if (itemDef.plug?.plugCategoryHash === PlugCategoryHashes.CraftingPlugsWeaponsModsEnhancers) {
+  if (itemDef.plug.plugCategoryHash === PlugCategoryHashes.CraftingPlugsWeaponsModsEnhancers) {
     return { rule: 'never' };
   }
 
+  const defHash = itemDef.hash;
+
   // New Armor 3.0 archetypes grant stats only to secondary stats when masterworked.
-  if (itemDef.plug?.plugCategoryHash === PlugCategoryHashes.V460PlugsArmorMasterworks) {
+  if (
+    itemDef.plug.plugCategoryHash === PlugCategoryHashes.V460PlugsArmorMasterworks ||
+    // The Balanced Tuning mod works the same way - it grants its bonus only to the three lowest stats.
+    defHash === ModsWithConditionalStats.BalancedTuning
+  ) {
     return { rule: 'archetypeArmorMasterwork' };
   }
 
-  const defHash = itemDef.hash;
   if (
     defHash === ModsWithConditionalStats.ElementalCapacitor ||
     defHash === ModsWithConditionalStats.EnhancedElementalCapacitor
@@ -136,18 +151,19 @@ export function isPlugStatActive(
       }
       return classType === rule.classType;
     case 'adeptWeapon':
-      return item ? adeptWeaponHashes.includes(item.hash) : warnMissingItem();
+      return item?.adept ?? warnMissingItem();
     case 'masterwork':
       return item?.masterwork ?? warnMissingItem();
+    case 'tieredWeaponMW':
+      // All stats are active for tiered weapon masterworks.
+      return true;
     case 'enhancedIntrinsic':
       // Crafted weapons get bonus stats from enhanced intrinsics at Level 20+.
       // The number 20 isn't in the definitions, so just hardcoding it here.
       // Alternatively, enhancing an adept weapon gives it an enhanced intrinsic
       // that gives bonus stats simply because it's an adept weapon, and more if Level 20+.
       // stats.ts:getPlugStatValue actually takes care of scaling this to the correct bonus.
-      return item
-        ? (item.craftedInfo?.level || 0) >= 20 || adeptWeaponHashes.includes(item.hash)
-        : warnMissingItem();
+      return item ? (item.craftedInfo?.level || 0) >= 20 || item.adept : warnMissingItem();
   }
 }
 

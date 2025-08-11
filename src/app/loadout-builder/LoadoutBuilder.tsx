@@ -1,4 +1,8 @@
-import { LoadoutParameters, StatConstraint } from '@destinyitemmanager/dim-api-types';
+import {
+  LoadoutParameters,
+  SetBonusCounts,
+  StatConstraint,
+} from '@destinyitemmanager/dim-api-types';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { savedLoStatConstraintsByClassSelector } from 'app/dim-api/selectors';
 import CharacterSelect from 'app/dim-ui/CharacterSelect';
@@ -54,6 +58,7 @@ import {
   LoadoutOptimizerExcludedItems,
   LoadoutOptimizerPinnedItems,
 } from './filter/LoadoutOptimizerMenuItems';
+import LoadoutOptimizerSetBonus from './filter/LoadoutOptimizerSetBonus';
 import NewFeaturedGearFilter from './filter/NewFeaturedGearFilter';
 import TierlessStatConstraintEditor from './filter/TierlessStatConstraintEditor';
 import CompareLoadoutsDrawer from './generated-sets/CompareLoadoutsDrawer';
@@ -129,6 +134,7 @@ export default memo(function LoadoutBuilder({
   const autoStatMods = Boolean(loadoutParameters.autoStatMods);
   const includeRuntimeStatBenefits = loadoutParameters.includeRuntimeStatBenefits ?? true;
   const assumeArmorMasterwork = loadoutParameters.assumeArmorMasterwork;
+  const setBonuses = loadoutParameters.setBonuses ?? emptyObject<SetBonusCounts>();
   const classType = loadout.classType;
 
   const selectedStore = stores.find((store) => store.id === selectedStoreId)!;
@@ -179,11 +185,16 @@ export default memo(function LoadoutBuilder({
     [armorItems, modsToAssign],
   );
 
-  const hasPreloadedLoadout = Boolean(preloadedLoadout);
+  // If the user is playing with an existing loadout (potentially one they
+  // received from a loadout share) or a direct /optimizer link, do not
+  // overwrite the global saved loadout parameters. If they decide to save that
+  // loadout, these will still be saved with the loadout. For these purposes we
+  // won't consider the equipped loadout to be a preloaded loadout.
+  const saveParamsAsDefaults = !(preloadedLoadout && preloadedLoadout.id !== 'equipped');
   // Save a subset of the loadout parameters to settings in order to remember them between sessions
-  useSaveLoadoutParameters(hasPreloadedLoadout, loadoutParameters);
+  useSaveLoadoutParameters(saveParamsAsDefaults, loadoutParameters);
   useSaveStatConstraints(
-    hasPreloadedLoadout,
+    saveParamsAsDefaults,
     statConstraints,
     savedStatConstraintsByClass,
     classType,
@@ -225,6 +236,7 @@ export default memo(function LoadoutBuilder({
       lockedExoticHash,
       armorEnergyRules,
       searchFilter,
+      setBonuses,
     });
     return [armorEnergyRules, items, filterInfo];
   }, [
@@ -237,6 +249,7 @@ export default memo(function LoadoutBuilder({
     unassignedMods,
     lockedExoticHash,
     searchFilter,
+    setBonuses,
   ]);
 
   const modStatChanges = useMemo(
@@ -256,6 +269,7 @@ export default memo(function LoadoutBuilder({
   const { result, processing } = useProcess({
     selectedStore,
     filteredItems,
+    setBonuses,
     lockedModMap,
     modStatChanges,
     armorEnergyRules,
@@ -343,6 +357,14 @@ export default memo(function LoadoutBuilder({
         vendorItems={vendorItems}
         lbDispatch={lbDispatch}
         storeId={selectedStore.id}
+        className={styles.loadoutEditSection}
+      />
+      <LoadoutOptimizerSetBonus
+        storeId={selectedStore.id}
+        classType={selectedStore.classType}
+        vendorItems={vendorItems}
+        lbDispatch={lbDispatch}
+        setBonuses={setBonuses}
         className={styles.loadoutEditSection}
       />
       <LoadoutEditModsSection
@@ -589,17 +611,13 @@ function useArmorItems(classType: DestinyClass, vendorItems: DimItem[]): DimItem
  * Save a subset of the loadout parameters to settings in order to remember them between sessions
  */
 function useSaveLoadoutParameters(
-  hasPreloadedLoadout: boolean,
+  saveParamsAsDefaults: boolean,
   loadoutParameters: LoadoutParameters,
 ) {
   const setSetting = useSetSetting();
   const firstRun = useRef(true);
   useEffect(() => {
-    // If the user is playing with an existing loadout (potentially one they
-    // received from a loadout share) or a direct /optimizer link, do not
-    // overwrite the global saved loadout parameters. If they decide to save
-    // that loadout, these will still be saved with the loadout.
-    if (hasPreloadedLoadout) {
+    if (!saveParamsAsDefaults) {
       return;
     }
 
@@ -618,7 +636,7 @@ function useSaveLoadoutParameters(
     setSetting,
     loadoutParameters.assumeArmorMasterwork,
     loadoutParameters.autoStatMods,
-    hasPreloadedLoadout,
+    saveParamsAsDefaults,
     loadoutParameters.includeRuntimeStatBenefits,
   ]);
 }
@@ -627,7 +645,7 @@ function useSaveLoadoutParameters(
  * Save stat constraints (stat order / enablement) per class when it changes
  */
 function useSaveStatConstraints(
-  hasPreloadedLoadout: boolean,
+  saveParamsAsDefaults: boolean,
   statConstraints: StatConstraint[],
   savedStatConstraintsByClass: {
     [key: number]: StatConstraint[];
@@ -638,11 +656,7 @@ function useSaveStatConstraints(
   const firstRun = useRef(true);
 
   useEffect(() => {
-    // If the user is playing with an existing loadout (potentially one they
-    // received from a loadout share) or a direct /optimizer link, do not
-    // overwrite the global saved loadout parameters. If they decide to save
-    // that loadout, these will still be saved with the loadout.
-    if (hasPreloadedLoadout) {
+    if (!saveParamsAsDefaults) {
       return;
     }
 
@@ -652,15 +666,13 @@ function useSaveStatConstraints(
       return;
     }
 
-    // Strip out min/max tiers and just save the order
-    const newStatConstraints = statConstraints.map(({ statHash }) => ({ statHash }));
-    if (!deepEqual(newStatConstraints, savedStatConstraintsByClass[classType])) {
+    if (!deepEqual(statConstraints, savedStatConstraintsByClass[classType])) {
       setSetting('loStatConstraintsByClass', {
         ...savedStatConstraintsByClass,
-        [classType]: newStatConstraints,
+        [classType]: statConstraints,
       });
     }
-  }, [setSetting, statConstraints, savedStatConstraintsByClass, classType, hasPreloadedLoadout]);
+  }, [setSetting, statConstraints, savedStatConstraintsByClass, classType, saveParamsAsDefaults]);
 }
 
 function UndoRedoControls({

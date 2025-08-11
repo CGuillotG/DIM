@@ -14,6 +14,7 @@ import {
   GhostActivitySocketTypeHashes,
   armor2PlugCategoryHashes,
   weaponMasterworkY2SocketTypeHash,
+  weaponParts,
 } from 'app/search/d2-known-values';
 import {
   DestinyInventoryItemDefinition,
@@ -182,7 +183,6 @@ export function getExtraIntrinsicPerkSockets(item: DimItem): DimSocket[] {
           // exotic class item intrinsics need to set isReusable false to avoid showing as selectable
           .map((s) => ({ ...s, isReusable: false }))
       : []),
-    ...item.sockets.allSockets.filter(isArmorArchetypeSocket),
   ];
 }
 
@@ -255,8 +255,10 @@ export function isEventArmorRerollSocket(socket: DimSocket) {
 
 export function isEnhancedPerk(plugDef: PluggableInventoryItemDefinition) {
   return (
-    plugDef.plug.plugCategoryHash === PlugCategoryHashes.Frames &&
-    plugDef.inventory!.tierType === TierType.Common
+    plugDef.inventory!.tierType === TierType.Common &&
+    (plugDef.plug.plugCategoryHash === PlugCategoryHashes.Frames ||
+      plugDef.plug.plugCategoryHash === PlugCategoryHashes.Origins ||
+      weaponParts.has(plugDef.plug.plugCategoryHash))
   );
 }
 
@@ -564,6 +566,14 @@ export function getWeaponSockets(
   };
 }
 
+// Sometimes we trust Bungie's advertised socket visibility information
+export const trustBungieVisibility = new Set<PlugCategoryHashes | undefined>([
+  // Artifice slots the game has marked as not visible (on un-upgraded exotics)
+  PlugCategoryHashes.EnhancementsArtifice,
+  // Stat tuning mods only available on Tier 5 armors
+  PlugCategoryHashes.CoreGearSystemsArmorTieringPlugsTuningMods,
+]);
+
 export function getGeneralSockets(
   item: DimItem,
   excludeEmptySockets = false,
@@ -590,14 +600,14 @@ export function getGeneralSockets(
     // never include the "pay for artifice upgrade" slot on exotic armor
     socketInfo.plugged?.plugDef.plug.plugCategoryHash !==
       PlugCategoryHashes.EnhancementsArtificeExotic &&
-    // Hide armor masterwork payment socket. We display masterworked status other ways.
-    !socketInfo.plugged?.plugDef.plug.plugCategoryIdentifier.startsWith(
-      'v460.plugs.armor.masterworks',
-    ) &&
-    // exclude artifice slots the game has marked as not visible (on un-upgraded exotics)
+    // Hide armor masterwork payment socket for armor 2.0 since it's the same as the energy bar for them.
+    (item.tier > 0 ||
+      !socketInfo.plugged?.plugDef.plug.plugCategoryIdentifier.startsWith(
+        'v460.plugs.armor.masterworks',
+      )) &&
     !(
-      socketInfo.plugged?.plugDef.plug.plugCategoryHash ===
-        PlugCategoryHashes.EnhancementsArtifice && !socketInfo.visibleInGame
+      !socketInfo.visibleInGame &&
+      trustBungieVisibility.has(socketInfo.plugged?.plugDef.plug.plugCategoryHash)
     ) &&
     // Ghost shells unlock an activity mod slot when masterworked and hide the dummy locked slot
     (item.bucket.hash !== BucketHashes.Ghost ||
@@ -665,4 +675,16 @@ export function matchesCuratedRoll(defs: D2ManifestDefinitions, item: DimItem) {
     );
 
   return matchesCollectionsRoll;
+}
+
+/** Finds the item's tuning socket if it's enabled. This socket can slightly modify the armor's stats. */
+export function getArmor3TuningSocket(item: DimItem): DimSocket | undefined {
+  return item.sockets?.allSockets.find(
+    (s) =>
+      // Ensures the socket is active (Tier 5 armor)
+      s.visibleInGame &&
+      // Even the "empty slot" placeholder has the right plugCategoryHash
+      s.plugged?.plugDef.plug.plugCategoryHash ===
+        PlugCategoryHashes.CoreGearSystemsArmorTieringPlugsTuningMods,
+  );
 }

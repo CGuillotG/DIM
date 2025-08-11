@@ -14,6 +14,10 @@
   }
 }
 
+.tunableSymbol {
+  position: relative;
+}
+
 // The numeric value of the stat
 .value {
   grid-column: 2;
@@ -179,9 +183,10 @@
 
 .negativeModded {
   color: $red;
-  .statName {
-    font-weight: bold;
-  }
+}
+
+.archetypeStat {
+  font-weight: bold;
 }
 
 .totalRow {

@@ -1,3 +1,4 @@
+import { SetBonusCounts } from '@destinyitemmanager/dim-api-types';
 import { TagValue } from 'app/inventory/dim-item-info';
 import { DimItem, PluggableInventoryItemDefinition } from 'app/inventory/item-types';
 import { ModMap } from 'app/loadout/mod-assignment-utils';
@@ -44,6 +45,7 @@ function createWorker() {
 export function runProcess({
   autoModDefs,
   filteredItems,
+  setBonuses,
   lockedModMap,
   modStatChanges,
   armorEnergyRules,
@@ -57,6 +59,7 @@ export function runProcess({
 }: {
   autoModDefs: AutoModDefs;
   filteredItems: ItemsByBucket;
+  setBonuses: SetBonusCounts;
   lockedModMap: ModMap;
   modStatChanges: ModStatChanges;
   armorEnergyRules: ArmorEnergyRules;
@@ -112,6 +115,7 @@ export function runProcess({
       armorEnergyRules,
       activityMods,
       bucketSpecificMods[bucketHash] || [],
+      Object.keys(setBonuses).map(Number),
       getUserItemTag,
     );
 
@@ -126,6 +130,7 @@ export function runProcess({
     filteredItems: processItems,
     modStatTotals: mapValues(modStatChanges, (stat) => stat.value),
     lockedMods: lockedProcessMods,
+    setBonuses,
     desiredStatRanges,
     anyExotic,
     autoModOptions: autoModsData,
@@ -201,6 +206,7 @@ const groupComparator = (getTag?: (item: DimItem) => TagValue | undefined) =>
  * - Masterwork status
  * - Exoticness (every exotic must be distinguished from other exotics and all legendaries)
  * - Energy capacity
+ * - Set bonus
  * - If there are mods with tags (activity/combat style) it will create groups split by compatible tags
  */
 function mapItemsToGroups(
@@ -209,9 +215,10 @@ function mapItemsToGroups(
   armorEnergyRules: ArmorEnergyRules,
   activityMods: PluggableInventoryItemDefinition[],
   modsForSlot: PluggableInventoryItemDefinition[],
+  setBonusHashes: number[],
   getUserItemTag?: (item: DimItem) => TagValue | undefined,
 ): ItemGroup[] {
-  // Figure out all the interesting mod slots required by mods are.
+  // Figure out all the interesting mod slots required by mods.
   // This includes combat mod tags because blue-quality items don't have them
   // and there may be legacy items that can slot CWL/Warmind Cell mods but not
   // Elemental Well mods?
@@ -269,7 +276,11 @@ function mapItemsToGroups(
   // Group items by everything relevant.
   const finalGroupingFn = (item: DimItem) => {
     const info = cache.get(item)!;
-    return `${info.stats.toString()}-${info.energyCapacity}-${[
+    const itemSetBonusHash = item.setBonus?.hash ?? 0;
+    // Only group by set bonus if set bonuses are being filtered
+    const setBonusHash = setBonusHashes.includes(itemSetBonusHash) ? itemSetBonusHash : 0;
+
+    return `${info.stats.toString()}-${info.energyCapacity}-${setBonusHash}-${[
       ...info.relevantModSeasons.values(),
     ].toString()}`;
   };

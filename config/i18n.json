@@ -317,7 +317,7 @@
     "RarityTier": "Shows items based on their rarity tier.",
     "Reforgeable": "Shows items that can be reforged at the Gunsmith.",
     "Release": "Available from release <i>{{release}}</i>",
-    "Shiny": "Shows BRAVE weapons with a limited-edition ornament.",
+    "Holofoil": "Shows holofoil weapons.",
     "Weapon": "Shows items that are weapons.",
     "Armor": "Shows items that are armor.",
     "Cosmetic": "Shows items that are flair or cosmetic.",
@@ -333,6 +333,7 @@
     "StatsBase": "Filters armor based on its base stat value, not including attached mods or masterworking. $t(Filter.StatsExtras)",
     "StatsExtras": "Supports stat addition by connecting multiple stat names with the + or & symbol.  There are also special keywords highest, secondhighest, thirdhighest, etc. which match stats based on their rank within an item's stats. Each custom stats also has its own search term, shown in the Custom Stats settings.",
     "StatsLoadout": "Finds a set of items to equip for the maximum total value of a specific stat.",
+    "StatsOrdinal": "Finds armor 3.0 with the specified stat focusing.",
     "StatsMax": "Finds armor with the highest number for a specific stat. Includes all items with the highest stat.",
     "Tags": {
       "Tag": "Shows items that have a specific tag.",
@@ -343,6 +344,7 @@
     "Tracked": "Shows quests/bounties based on their tracked status.",
     "Transferable": "Items that can be moved between characters.",
     "Trashlist": "Shows items that match your wish list's trash list.",
+    "TunedStat": "Shows items with tuning mods for the specified stat.",
     "Undo": "Undo",
     "UnlockAllFailed": "Failed to unlock items",
     "UnlockAllSuccess": "Unlocked {{num}} items",
@@ -484,8 +486,8 @@
     "ThumbsUp": "Thumbs Up",
     "ThumbsDown": "Thumbs Down",
     "SetBonus": {
-      "2Piece": "2 Piece",
-      "4Piece": "4 Piece"
+      "NPiece_one": "{{count}} Piece",
+      "NPiece_other": "{{count}} Piece"
     }
   },
   "ItemFeed": {
@@ -545,6 +547,7 @@
     "AdvancedOptions": "Advanced Options",
     "ChooseAMod": "Choose your mods",
     "ChooseAnExotic": "Choose your exotic",
+    "ChooseASetBonus": "Choose your set bonuses",
     "ClearLocked": "Clear Locked",
     "ContainsVendorItems": "This loadout contains vendor items",
     "Current": "Current",
@@ -601,6 +604,7 @@
     "SelectModsCountActivityMods": "{{selected}}/{{maxSelectable}} Activity Mods",
     "SelectExotic": "Select exotic",
     "SelectMods": "Select Mods",
+    "SelectSetBonus": "Select Set Bonuses",
     "AddStack": "Add another copy of this mod",
     "RemoveStack": "Remove a copy of this mod",
     "SelectSubclassOptions": "Customize subclass",
@@ -632,7 +636,7 @@
       "Legendary": "Legendary: $t(LoadoutBuilder.AssumeMasterworkOptions.Masterworked)\nExotic: $t(LoadoutBuilder.AssumeMasterworkOptions.Current)",
       "None": "All armor: $t(LoadoutBuilder.AssumeMasterworkOptions.Current)",
       "Current": "Current stats, assumed energy level at least {{minLoItemEnergy}}.",
-      "Masterworked": "Full masterwork stat bonuses, assumed energy level 10."
+      "Masterworked": "Full masterwork stat bonuses, assumed energy level at least 10."
     },
     "ChooseAlternateTitle": "Choose another item",
     "CompareLoadout": "Compare Loadout",
@@ -669,7 +673,9 @@
       "ModAssignmentFailed": "Many sets could not accommodate all requested mods",
       "MaybeDecreaseLowerBounds": "Consider reducing minimum stat requirements",
       "MaybeIncreaseUpperBounds": "Consider increasing maximum stat requirements",
-      "AllowAutoStatMods": "Allow DIM to automatically include additional stat mods"
+      "AllowAutoStatMods": "Allow DIM to automatically include additional stat mods",
+      "SetBonuses": "You have chosen some set bonuses, maybe you don't have the right items to use them.",
+      "RemoveSetBonuses": "Consider removing some set bonuses"
     },
     "NoExotic": "No Exotic",
     "NoExoticDescription": "Equivalent to searching \"not:exotic\" in the search bar - sets will not use any exotic armor.",
@@ -684,6 +690,7 @@
     "OptimizerSet": "Optimizer Set",
     "ProcessingSets": "Finding highest stat sets...",
     "SaveAs": "Save as",
+    "SetBonus": "Set Bonuses",
     "SpeedReport": "Generated {{combos, number}} combinations in {{time}} seconds",
     "StatConstraints": "Stat Priorities & Ranges",
     "StatMax": "Max",
@@ -758,6 +765,7 @@
     "IncludeRuntimeStatBenefits": "Include Font mod stats",
     "IncludeRuntimeStatBenefitsDesc": "\"Font of ...\" armor mods provide a flat boost to character stats while you have Armor Charges.\n\nWith this setting, DIM considers these mods active and adds their benefits to this Loadout's stats in calculations and optimizations.",
     "InGameLoadouts": "In-Game Loadouts",
+    "SetBonusesDesc": "Required set bonuses",
     "InGameActions": "In-Game Loadout Actions",
     "ItemLeveling": "Item Leveling",
     "LoadoutName": "Loadout name",
