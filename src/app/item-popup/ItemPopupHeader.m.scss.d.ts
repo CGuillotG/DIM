@@ -16,6 +16,8 @@ interface CssExports {
   'rare': string;
   'subtitle': string;
   'tierPip': string;
+  'tierPipTier4': string;
+  'tierPipTier5': string;
   'title': string;
   'type': string;
   'uncommon': string;

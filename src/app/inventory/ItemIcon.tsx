@@ -89,7 +89,14 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
           {Array(item.tier)
             .fill(0)
             .map((_, i) => (
-              <div key={i} className={styles.tierPip} />
+              <div
+                key={i}
+                className={clsx(
+                  styles.tierPip,
+                  item.tier === 4 && styles.tierPipTier4,
+                  item.tier === 5 && styles.tierPipTier5,
+                )}
+              />
             ))}
         </div>
       ) : null}
