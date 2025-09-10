@@ -5,6 +5,7 @@ interface CssExports {
   'elementIcon': string;
   'weaponTypeIcon': string;
   'weaponTypeIconHeavy': string;
+  'weaponTypeIconPrimary': string;
   'weaponTypeIconSpecial': string;
 }
 export const cssExports: CssExports;
