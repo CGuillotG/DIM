@@ -165,12 +165,16 @@ export function generateCSVExportData(
     'ammo',
     'power',
     'energy',
+    'archetype',
+    'tertiary',
+    'tuning',
     'masterworkStat',
     'masterworkTier',
     'location',
     'locked',
     'Equipped',
     'featured',
+    'holofoil',
     'year',
     'season',
     'event',
@@ -183,7 +187,7 @@ export function generateCSVExportData(
     'modslot',
     'loadouts',
     'notes',
-    // unknown columns end up here
+
     // then perks
   ];
   columns.sort(

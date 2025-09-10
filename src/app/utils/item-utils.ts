@@ -11,12 +11,13 @@ import {
 } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { getSeason } from 'app/inventory/store/season';
+import { knownModPlugCategoryHashes } from 'app/loadout/known-values';
 import { D1BucketHashes } from 'app/search/d1-known-values';
 import {
   ARTIFICE_PERK_HASH,
-  armor2PlugCategoryHashes,
   killTrackerObjectivesByHash,
   killTrackerSocketTypeHash,
+  tuningModToTunedStathash,
 } from 'app/search/d2-known-values';
 import { damageNamesByEnum } from 'app/search/search-filter-values';
 import modSocketMetadata, {
@@ -113,7 +114,7 @@ export const getModTypeTagByPlugCategoryHash = (plugCategoryHash: number): strin
 /** feed a **mod** definition into this */
 export const isArmor2Mod = (item: DestinyInventoryItemDefinition): boolean =>
   item.plug !== undefined &&
-  (armor2PlugCategoryHashes.includes(item.plug.plugCategoryHash) ||
+  (knownModPlugCategoryHashes.includes(item.plug.plugCategoryHash) ||
     specialtyModPlugCategoryHashes.includes(item.plug.plugCategoryHash));
 
 /** accepts a DimMasterwork or lack thereof */
@@ -244,7 +245,11 @@ export function getItemYear(
 ) {
   if (('destinyVersion' in item && item.destinyVersion === 2) || 'displayProperties' in item) {
     const season = getSeason(item, defs);
-    return season ? Math.floor(season / 4) + 1 : 0;
+    if (season < 27) {
+      return season ? Math.floor(season / 4) + 1 : 0;
+    } else {
+      return season ? Math.floor((season - 27) / 2) + 8 : 0;
+    }
   } else if (isD1Item(item)) {
     if (!item.sourceHashes) {
       return 1;
@@ -319,7 +324,7 @@ export function isArtificeSocket(socket: DimSocket) {
 }
 
 /**
- * Is this the new-style armor masterwork in Edge of Fate that grants +1 to the three lower stats per tier?
+ * Does this armor have the new-style armor masterwork in Edge of Fate, that grants +1 per MW tier, to the three lower stats?
  */
 // TODO: May want to switch this to isLegacyArmorMasterwork eventually
 export function isArmor3(item: DimItem) {
@@ -429,14 +434,10 @@ export function getArmor3StatFocus(item: DimItem): StatHashes[] {
  * Returns the stat hash of the item's tunable stat.
  * This stat can be upgraded at the cost of another stat.
  *
- * This heuristic relies on the following assumptions:
- * - Every armor with tuning has Balanced Tuning (3122197216) which provides +1 to several stats.
- * - Armor with e.g. a melee tuning, has several available plugs which raise Melee stat by 5 (and none which raise other stats by that much)
+ * Every armor with tuning has Balanced Tuning (3122197216) which provides +1 to several stats,
+ * so this seeks an available plug item that's one of the +5/-5 mods.
  */
-export function getArmor3TuningStat(
-  item: DimItem,
-  defs: D2ManifestDefinitions,
-): number | undefined {
+export function getArmor3TuningStat(item: DimItem): number | undefined {
   const reusablePlugItems = item.bucket.inArmor
     ? getArmor3TuningSocket(item)?.reusablePlugItems
     : undefined;
@@ -444,12 +445,9 @@ export function getArmor3TuningStat(
     return;
   }
 
-  for (const reusablePlug of reusablePlugItems) {
-    const positiveHash = defs.InventoryItem.get(reusablePlug.plugItemHash).investmentStats.find(
-      (s) => s.value > 1,
-    );
-    if (positiveHash) {
-      return positiveHash.statTypeHash;
+  for (const { plugItemHash } of reusablePlugItems) {
+    if (plugItemHash in tuningModToTunedStathash) {
+      return tuningModToTunedStathash[plugItemHash];
     }
   }
   return undefined;

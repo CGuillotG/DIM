@@ -3,7 +3,7 @@ import { DimItem } from 'app/inventory/item-types';
 import { ArmorStatHashes } from 'app/loadout-builder/types';
 import { invert } from 'app/utils/collections';
 import { HashLookup, StringLookup } from 'app/utils/util-types';
-import { TierType } from 'bungie-api-ts/destiny2';
+import { DestinyClass, TierType } from 'bungie-api-ts/destiny2';
 
 import {
   BreakerTypeHashes,
@@ -146,7 +146,11 @@ export const D2ArmorStatHashByName: StringLookup<StatHashes> = {
   strength: StatHashes.Melee,
 } as const;
 
-/** Stats that all (D2) armor should have, ordered by how they're displayed in game. */
+/**
+ * Stats that all (D2) armor should have, ordered by how they're displayed in game.
+ *
+ * Only the 6 real armor stats, no aliases or synthetic stats.
+ */
 export const armorStats: ArmorStatHashes[] = [
   StatHashes.Health,
   StatHashes.Melee,
@@ -241,8 +245,9 @@ export const DEEPSIGHT_HARMONIZER = 2228452164;
 // For loadout mods obliterated from the defs, we instead return this def
 export const deprecatedPlaceholderArmorModHash = 3947616002; // InventoryItem "Deprecated Armor Mod"
 
-// used in displaying the component segments on item stats
-export const weaponParts = new Set<PlugCategoryHashes | undefined>([
+// Weapon components, like barrels, mags, etc.
+// Plugs that contribute to a weapon's stats, but aren't its base stats, traits, or mods.
+export const weaponComponentPCHs = new Set<PlugCategoryHashes | undefined>([
   PlugCategoryHashes.Bowstrings,
   PlugCategoryHashes.Batteries,
   PlugCategoryHashes.Blades,
@@ -329,6 +334,7 @@ export const enum VendorHashes {
   Failsafe = 1576276905,
   RivensWishesExotics = 2388521577,
   XurLegendaryItems = 3751514131, // Vendor "Strange Gear Offers"
+  VanguardArms = 153857624, // "Weekly: Vanguard Arms Rewards"
 }
 
 // See coreSettingsLoaded reducer action for details. And remove this if/when we no longer perform that hack.
@@ -404,3 +410,46 @@ export const enum ModsWithConditionalStats {
 }
 
 export const ARTIFICE_PERK_HASH = 3727270518; // InventoryItem "Artifice Armor"
+
+// TODO: replace with d2ai?
+export const tuningModToTunedStathash: Record<number, StatHashes> = {
+  309000506: StatHashes.Grenade,
+  311164277: StatHashes.Melee,
+  323635379: StatHashes.Class,
+  388618952: StatHashes.Health,
+  455024236: StatHashes.Grenade,
+  534630542: StatHashes.Melee,
+  673231129: StatHashes.Super,
+  691392383: StatHashes.Weapons,
+  891771298: StatHashes.Weapons,
+  957763733: StatHashes.Class,
+  1510949672: StatHashes.Class,
+  1672416975: StatHashes.Grenade,
+  1879022254: StatHashes.Class,
+  1918710127: StatHashes.Weapons,
+  1922571986: StatHashes.Grenade,
+  2125798995: StatHashes.Health,
+  2244422610: StatHashes.Super,
+  3121760799: StatHashes.Weapons,
+  3284443097: StatHashes.Weapons,
+  3310526732: StatHashes.Health,
+  3554800389: StatHashes.Super,
+  3681082702: StatHashes.Health,
+  3946669007: StatHashes.Super,
+  4020349587: StatHashes.Melee,
+  4026414261: StatHashes.Super,
+  4030660414: StatHashes.Class,
+  4088823605: StatHashes.Health,
+  4116389173: StatHashes.Grenade,
+  4164883102: StatHashes.Melee,
+  4210715468: StatHashes.Melee,
+};
+
+export const destinyClasses = [DestinyClass.Hunter, DestinyClass.Titan, DestinyClass.Warlock];
+
+export const customStatClasses = [
+  DestinyClass.Hunter,
+  DestinyClass.Titan,
+  DestinyClass.Warlock,
+  DestinyClass.Unknown,
+];
