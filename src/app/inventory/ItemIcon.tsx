@@ -1,5 +1,5 @@
 import { itemConstants } from 'app/destiny2/d2-definitions';
-import { bungieBackgroundStyle, bungieBackgroundStyles } from 'app/dim-ui/BungieImage';
+import BungieImage, { bungieBackgroundStyle, bungieBackgroundStyles } from 'app/dim-ui/BungieImage';
 import BucketIcon from 'app/dim-ui/svgs/BucketIcon';
 import { getBucketSvgIcon } from 'app/dim-ui/svgs/itemCategory';
 import { useD2Definitions } from 'app/manifest/selectors';
@@ -194,6 +194,7 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
               })}
             />
           )}
+          {tierPips && item.tier >= 4 && <BungieImage className={styles.tierPips} src={tierPips} />}
           {seasonIcon && (
             <div style={bungieBackgroundStyle(seasonIcon)} className={styles.seasonIcon} />
           )}

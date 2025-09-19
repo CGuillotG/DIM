@@ -21,6 +21,7 @@ interface CssExports {
   'strandColorFix': string;
   'tier4Pips': string;
   'tier5Pips': string;
+  'tierPips': string;
 }
 export const cssExports: CssExports;
 export default cssExports;

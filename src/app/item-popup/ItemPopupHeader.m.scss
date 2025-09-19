@@ -154,6 +154,11 @@ $iconOverlayScale: math.div(65, 96);
   }
 }
 
+.tierPips {
+  width: math.round(96px * $iconOverlayScale);
+  mix-blend-mode: multiply;
+}
+
 .tier4Pips {
   // Color filter to match #be95ed
   filter: brightness(0) saturate(100%) invert(68%) sepia(11%) saturate(1745%) hue-rotate(222deg)
