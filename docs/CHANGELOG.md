@@ -1,5 +1,10 @@
 ## Next
 
+* Updated item tiles to more closely match in-game tiles, with higher quality images.
+* Remove armor energy capacity from the item tile. It's just not that interesting these days.
+
+## 8.90.1 <span class="changelog-date">(2025-09-18)</span>
+
 * Fixed some cases where the enhanced version of perks would not match wishlists that specified the unenhanced version.
 * Replaced empty or mismatched mod slot icons with ones that match the activity they're used in.
 * Fixed a crash using the Streamdeck plugin.
