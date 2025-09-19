@@ -1,5 +1,45 @@
 ## Next
 
+* Fixed some cases where the enhanced version of perks would not match wishlists that specified the unenhanced version.
+* Replaced empty or mismatched mod slot icons with ones that match the activity they're used in.
+* Fixed a crash using the Streamdeck plugin.
+* `tag:none` no longer selects untaggable objects like materials and abilities
+
+## 8.90.0 <span class="changelog-date">(2025-09-14)</span>
+
+* Updated tuned stat icon.
+* `dupe:perks` and `dupe:traits` will ignore perks' enhancement status.
+* Fixed icons displaying too large on the gear power tooltip.
+* Loadout Optimizer result sets now show which set bonuses they activate.
+* Added `tunedstat:primary`, `tunedstat:secondary`, and `tunedstat:tertiary`.
+* Distinguish between special and primary ammo sidearms/pulse rifles in `dupe:traits` and `dupe:perks` comparison.
+
+## 8.89.1 <span class="changelog-date">(2025-09-09)</span>
+
+* In Compare and Organizer, there are now separate columns/rows for archetype and perks.
+* Added armor masterwork tier, tertiary stat, and tuning stat columns to Organizer and CSV output.
+* Reorganized weapons columns in Organizer a bit.
+* Added `dupe:traits` for finding weapons with duplicate traits.
+
+## 8.89.0 <span class="changelog-date">(2025-09-07)</span>
+
+* Reduced how much items are dimmed out in the Item Feed when they don't match the current search.
+* BETA: Option to compare by base masterworked stats in Compare feature. This allows a fair comparison between Armor 2.0 and Armor 3.0.
+* Added a setting to control how many CPU cores can be used by Loadout Optimizer/Analyzer.
+* Reorganized the Settings page.
+* Loadout Optimizer no longer excludes pieces with the requested Set Bonus, even if their stats are terrible.
+* Fix wishlists not properly matching some new enhanced perks
+* The perk list vs. grid setting is now saved independently for mobile and desktop views.
+* Un-deprecated the `is:infusionfodder` filter.
+* Removed redundant holofoil overlay.
+* Compare/Organizer sorting now takes Tuning Mods and Artifice armor into account when sorting Totals or Custom Stats.
+* Totals and Custom stats in Compare/Organizer have an indicator when Tuners or Artifice mods can contribute.
+* Invalid wish list rolls are now shown in Armory with a tooltip that explains them.
+* Loadout analyzer is more precise about calling out invalid search queries vs. loadouts whose search query excludes some of its armor.
+* Added wishlist title/description and link to source to the Armory page.
+
+## 8.88.0 <span class="changelog-date">(2025-08-31)</span>
+
 * Tuning mods can be chosen manually in the loadout editor, and will be assigned to compatible items when the loadout is applied. The equipped loadout and any snapshotted in-game loadouts will retain their tuning mods.
 * Loadout Optimizer will no longer collapse sets with items that have the exact same stats. Now you'll see a separate set for each copy.
 * Combine the set bonus tooltips for items of the same set in character status
@@ -13,6 +53,7 @@
 * Fixed a case where some old searches could not be unsaved. Remember that you can also *delete* searches from the Search History page or by clicking the X in the autocomplete dropdown.
 * Improve autocomplete for the new `dupe:` filter.
 * Loadout Optimizer and Compare will only show vendor items that you can actually buy.
+* Fixed Progress tab season pass counter double counting levels 101-110
 
 ## 8.87.0 <span class="changelog-date">(2025-08-24)</span>
 
