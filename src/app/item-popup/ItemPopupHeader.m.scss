@@ -154,10 +154,14 @@ $iconOverlayScale: math.div(65, 96);
   }
 }
 
-.tierPipTier4 {
-  background: #be95eddd;
+.tier4Pips {
+  // Color filter to match #be95ed
+  filter: brightness(0) saturate(100%) invert(68%) sepia(11%) saturate(1745%) hue-rotate(222deg)
+    brightness(94%) contrast(97%);
 }
 
-.tierPipTier5 {
-  background: #ffe991dd;
+.tier5Pips {
+  // Color filter to match #ffe991
+  filter: brightness(0) saturate(100%) invert(87%) sepia(25%) saturate(747%) hue-rotate(340deg)
+    brightness(106%) contrast(104%);
 }

@@ -15,8 +15,8 @@ interface CssExports {
   'pursuit': string;
   'rare': string;
   'subtitle': string;
-  'tierPipTier4': string;
-  'tierPipTier5': string;
+  'tier4Pips': string;
+  'tier5Pips': string;
   'title': string;
   'type': string;
   'uncommon': string;

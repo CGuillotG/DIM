@@ -140,15 +140,17 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
     item.crafted ? itemConstants?.craftedBackgroundPath : undefined,
   ]);
   // These are aligned with the border, not the image
-  const seasonAndPips = compact([
+  const seasonAndFlags = compact([
     // Featured flags
     item.featured ? itemConstants?.featuredItemFlagPath : undefined,
-    // Tier pips
-    item.tier > 0 && itemConstants?.gearTierOverlayImagePaths[item.tier - 1],
   ]);
 
+  // Tier pips - separate so we can apply filters only to them
+  const tierPips =
+    item.tier > 0 ? itemConstants?.gearTierOverlayImagePaths[item.tier - 1] : undefined;
+
   if (craftedOverlays.length === 0 && seasonBanner) {
-    seasonAndPips.push(seasonBanner);
+    seasonAndFlags.push(seasonBanner);
     seasonBanner = '';
   }
 
@@ -180,8 +182,17 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
           {craftedOverlays.length > 0 && (
             <div style={bungieBackgroundStyles(craftedOverlays)} className={styles.craftedLayer} />
           )}
-          {seasonAndPips.length > 0 && (
-            <div style={bungieBackgroundStyles(seasonAndPips)} className={styles.shiftedLayer} />
+          {seasonAndFlags.length > 0 && (
+            <div style={bungieBackgroundStyles(seasonAndFlags)} className={styles.shiftedLayer} />
+          )}
+          {tierPips && (
+            <div
+              style={bungieBackgroundStyle(tierPips)}
+              className={clsx(styles.shiftedLayer, {
+                [styles.tier4Pips]: item.tier === 4,
+                [styles.tier5Pips]: item.tier === 5,
+              })}
+            />
           )}
           {seasonIcon && (
             <div style={bungieBackgroundStyle(seasonIcon)} className={styles.seasonIcon} />

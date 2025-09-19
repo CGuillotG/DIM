@@ -1,6 +1,6 @@
 import ArmorySheet from 'app/armory/ArmorySheet';
 import { itemConstants } from 'app/destiny2/d2-definitions';
-import BungieImage, { bungieBackgroundStyles } from 'app/dim-ui/BungieImage';
+import BungieImage, { bungieBackgroundStyle, bungieBackgroundStyles } from 'app/dim-ui/BungieImage';
 import ElementIcon from 'app/dim-ui/ElementIcon';
 import RichDestinyText from 'app/dim-ui/destiny-symbols/RichDestinyText';
 import { useHotkey } from 'app/hotkeys/useHotkey';
@@ -102,17 +102,31 @@ function SeasonTierBanner({ item }: { item: DimItem }) {
   const backgrounds = compact([
     // Featured flags
     item.featured ? itemConstants.featuredItemFlagPath : undefined,
-    // Tier pips
-    item.tier > 0 && itemConstants.gearTierOverlayImagePaths[item.tier - 1],
     // Black stripe
     item.iconDef.secondaryBackground && itemConstants.watermarkDropShadowPath,
   ]);
-  if (!seasonIcon && backgrounds.length === 0) {
+
+  // Tier pips
+  const tierPips =
+    item.tier > 0 ? itemConstants.gearTierOverlayImagePaths[item.tier - 1] : undefined;
+
+  if (!seasonIcon && backgrounds.length === 0 && !tierPips) {
     return null;
   }
   return (
-    <div className={styles.iconOverlay} style={bungieBackgroundStyles(backgrounds)}>
-      {seasonIcon && <BungieImage src={seasonIcon} />}
-    </div>
+    <>
+      <div className={styles.iconOverlay} style={bungieBackgroundStyles(backgrounds)}>
+        {seasonIcon && <BungieImage src={seasonIcon} />}
+      </div>
+      {tierPips && (
+        <div
+          className={clsx(styles.iconOverlay, {
+            [styles.tier4Pips]: item.tier === 4,
+            [styles.tier5Pips]: item.tier === 5,
+          })}
+          style={bungieBackgroundStyle(tierPips)}
+        />
+      )}
+    </>
   );
 }
