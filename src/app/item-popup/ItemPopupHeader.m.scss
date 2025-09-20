@@ -170,3 +170,7 @@ $iconOverlayScale: math.div(65, 96);
   filter: brightness(0) saturate(100%) invert(87%) sepia(25%) saturate(747%) hue-rotate(340deg)
     brightness(106%) contrast(104%);
 }
+
+.tierPipOverlay {
+  mix-blend-mode: multiply;
+}

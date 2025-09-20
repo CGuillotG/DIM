@@ -128,7 +128,10 @@ function SeasonTierBanner({ item }: { item: DimItem }) {
             style={bungieBackgroundStyle(tierPips)}
           />
           {item.tier >= 4 && (
-            <BungieImage className={clsx(styles.iconOverlay, styles.tierPips)} src={tierPips} />
+            <div
+              style={bungieBackgroundStyle(tierPips)}
+              className={clsx(styles.iconOverlay, styles.tierPipOverlay)}
+            />
           )}
         </>
       )}
