@@ -1,7 +1,6 @@
 import { getSeasonPassStatus } from 'app/progress/SeasonalRank';
-import { getCurrentSeasonInfo } from 'app/utils/seasons';
-import { DestinyProfileResponse, DestinyProgressionDefinition } from 'bungie-api-ts/destiny2';
-import { clamp } from 'es-toolkit';
+import { useCurrentSeasonInfo } from 'app/utils/seasons';
+import { DestinyProfileResponse } from 'bungie-api-ts/destiny2';
 import { D2ManifestDefinitions } from '../../destiny2/d2-definitions';
 
 /**
@@ -9,15 +8,21 @@ import { D2ManifestDefinitions } from '../../destiny2/d2-definitions';
  * for the first 5 season levels each week. Ideally this would just come back in the response,
  * but instead we have to calculate it from the weekly XP numbers.
  */
-export function isWellRested(
+export function useIsWellRested(
   defs: D2ManifestDefinitions,
   profileInfo: DestinyProfileResponse,
 ): {
+  /** Is the "well rested" buff active? */
   wellRested: boolean;
+  /** How much of the well rested XP has been earned so far this week? */
   weeklyProgress?: number;
+  /**
+   * How much XP total needs to be earned in a week before the character is no
+   * longer "well rested"?
+   */
   requiredXP?: number;
 } {
-  const { season, seasonPass } = getCurrentSeasonInfo(defs, profileInfo);
+  const { season, seasonPass } = useCurrentSeasonInfo(defs, profileInfo);
   if (!season) {
     return {
       wellRested: false,
@@ -33,59 +38,18 @@ export function isWellRested(
     };
   }
 
-  const {
-    seasonPassLevel,
-    seasonProgression,
-    prestigeMode,
-    prestigeProgression,
-    prestigeProgressionDef,
-    seasonProgressionDef,
-    weeklyProgress,
-    nextLevelAt,
-  } = getSeasonPassStatus(defs, profileInfo, seasonPass, season);
+  const { weeklyProgress } = getSeasonPassStatus(defs, profileInfo, seasonPass, season);
 
-  /**
-   *  Calculate the amount of levels we need to fullfill well rested requirements
-   *  Ranks 101-110 are equiv to 5 levels each
-   */
-  const baseLevelXPRequirement = seasonProgressionDef?.steps[1]?.progressTotal ?? 100000;
-  const wellRestedLevels = (baseLevelXPRequirement * 5) / nextLevelAt;
+  // 5 levels worth of XP at 100k each. We used to calculate this dynamically
+  // but this has been 500k consistently and the calculation is no longer easy
+  // as the definitions don't agree with the game (Ranks 101-110 are displayed
+  // in game as 5 segments, each of which is equivalent to one regular levels at
+  // 100k, but in the defs they are a single 500k level).
+  const requiredXP = 500_000;
 
-  if (seasonProgressionDef.steps.length === seasonProgression.levelCap) {
-    for (let i = 0; i < wellRestedLevels; i++) {
-      seasonProgressionDef.steps.push(prestigeProgressionDef.steps[0]);
-    }
-  }
-
-  const requiredXP =
-    prestigeMode && prestigeProgression.level >= wellRestedLevels
-      ? xpRequiredForLevel(0, prestigeProgressionDef) * wellRestedLevels
-      : xpTotalRequiredForLevel(seasonPassLevel, seasonProgressionDef, wellRestedLevels);
-
-  // Have you gained XP equal to three full levels worth of XP?
   return {
     wellRested: weeklyProgress < requiredXP,
     weeklyProgress,
     requiredXP,
   };
-}
-
-/**
- * How much XP was required to achieve the given level?
- */
-function xpRequiredForLevel(level: number, progressDef: DestinyProgressionDefinition) {
-  const stepIndex = clamp(level, 0, progressDef.steps.length - 1);
-  return progressDef.steps[stepIndex].progressTotal;
-}
-
-function xpTotalRequiredForLevel(
-  totalLevel: number,
-  seasonProgressDef: DestinyProgressionDefinition,
-  WELL_RESTED_LEVELS: number,
-) {
-  let totalXP = 0;
-  for (let i = 0; i < WELL_RESTED_LEVELS; i++) {
-    totalXP += xpRequiredForLevel(totalLevel - i, seasonProgressDef);
-  }
-  return totalXP;
 }

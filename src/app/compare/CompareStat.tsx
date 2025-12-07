@@ -1,13 +1,13 @@
 import AnimatedNumber from 'app/dim-ui/AnimatedNumber';
 import RecoilStat, { recoilValue } from 'app/item-popup/RecoilStat';
 import { getCompareColor, percent } from 'app/shell/formatters';
-import { AppIcon, tuningStatIcon } from 'app/shell/icons';
+import { AppIcon, tunedStatIcon } from 'app/shell/icons';
 import { artificeIcon } from 'app/shell/icons/custom/Artifice';
 import { getArmor3TuningStat, isArtifice } from 'app/utils/item-utils';
 import clsx from 'clsx';
 import { StatHashes } from 'data/d2/generated-enums';
 import { D1Stat, DimItem, DimStat } from '../inventory/item-types';
-import styles from './CompareStat.m.scss';
+import * as styles from './CompareStat.m.scss';
 
 export default function CompareStat({
   min,
@@ -16,6 +16,7 @@ export default function CompareStat({
   item,
   value,
   relevantStatHashes,
+  extraStatInfo = false,
 }: {
   stat?: DimStat | D1Stat;
   item: DimItem;
@@ -24,11 +25,13 @@ export default function CompareStat({
   max: number;
   /** If this represents a custom stat, these are the real stats that custom stat includes. */
   relevantStatHashes?: number[];
+  /** Whether to show extra stat info icons (e.g. that the total includes tuners, or that the stat is tuned) and stat bars. */
+  extraStatInfo?: boolean;
 }) {
   const isMasterworkStat = Boolean(
     item?.bucket.inWeapons &&
-      stat &&
-      item.masterworkInfo?.stats?.some((s) => s.isPrimary && s.hash === stat.statHash),
+    stat &&
+    item.masterworkInfo?.stats?.some((s) => s.isPrimary && s.hash === stat.statHash),
   );
   const color = getCompareColor(statRange(stat, min, max, value));
   const tunedStatHash = getArmor3TuningStat(item);
@@ -39,7 +42,7 @@ export default function CompareStat({
   const syntheticStat = Boolean(stat?.statHash && stat.statHash < 0);
   // If this is Artifice armor and a custom or Total stat
   const showArtificeIcon = isArtifice(item) && syntheticStat;
-  const extraIcon = showTunerIcon ? tuningStatIcon : showArtificeIcon ? artificeIcon : undefined;
+  const extraIcon = showTunerIcon ? tunedStatIcon : showArtificeIcon ? artificeIcon : undefined;
   const showBar = stat?.bar && item.bucket.inArmor;
 
   return (
@@ -51,7 +54,7 @@ export default function CompareStat({
           [styles.noMinWidth]: !stat || stat.statHash === StatHashes.AnyEnergyTypeCost,
         })}
       />
-      {item.bucket.inArmor && (
+      {item.bucket.inArmor && extraStatInfo && (
         <span className={clsx(styles.statBarArea, showBar && styles.statBarContainer)}>
           {extraIcon && (
             <span
@@ -60,8 +63,8 @@ export default function CompareStat({
                 [styles.smaller]: showArtificeIcon,
               })}
             >
-              {(showArtificeIcon || relevantStatHashes) && <sup>+</sup>}
               <AppIcon icon={extraIcon} />
+              {showArtificeIcon && <sup>+</sup>}
             </span>
           )}
           {showBar && (

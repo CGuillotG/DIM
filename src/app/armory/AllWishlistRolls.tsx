@@ -7,17 +7,14 @@ import { useD2Definitions } from 'app/manifest/selectors';
 import { faExclamationTriangle } from 'app/shell/icons';
 import AppIcon from 'app/shell/icons/AppIcon';
 import { compareBy } from 'app/utils/comparators';
+import { isEnhancedPerkHash } from 'app/utils/perk-utils';
 import { wishListInfosSelector, wishListRollsForItemHashSelector } from 'app/wishlists/selectors';
 import { WishListRoll } from 'app/wishlists/types';
 import { partition } from 'es-toolkit';
 import { useSelector } from 'react-redux';
-import styles from './AllWishlistRolls.m.scss';
+import * as styles from './AllWishlistRolls.m.scss';
 import { getCraftingTemplate } from './crafting-utils';
-import {
-  consolidateRollsForOneWeapon,
-  consolidateSecondaryPerks,
-  enhancedToPerk,
-} from './wishlist-collapser';
+import { consolidateRollsForOneWeapon, consolidateSecondaryPerks } from './wishlist-collapser';
 
 /**
  * List out all the known wishlist rolls for a given item.
@@ -119,10 +116,10 @@ function WishlistRolls({
 
   // TODO: group by making a tree of least cardinality -> most?
 
-  const usedTitles = new Set<string>();
-  function useTitle(roll: WishListRoll) {
-    if (roll.title && !usedTitles.has(roll.title)) {
-      usedTitles.add(roll.title);
+  const spentTitles = new Set<string>();
+  function spendTitle(roll: WishListRoll) {
+    if (roll.title && !spentTitles.has(roll.title)) {
+      spentTitles.add(roll.title);
       const url = wishlistInfos?.[roll.sourceWishListIndex ?? -1]?.url;
       return (
         <>
@@ -140,7 +137,7 @@ function WishlistRolls({
 
         return (
           <div key={notes} className={styles.rollGroup}>
-            {useTitle(rolls[0])}
+            {spendTitle(rolls[0])}
             <p className={styles.notes}>{notes}</p>
             <ul>
               {consolidatedRolls.map((cr) => {
@@ -159,7 +156,7 @@ function WishlistRolls({
                 const primaryBundles = cr.rolls[0].primarySocketIndices.map((socketIndex) =>
                   primariesGroupedByColumn[socketIndex ?? -1].sort(
                     // establish a consistent base -> enhanced perk order
-                    compareBy((h) => (h in enhancedToPerk ? 1 : 0)),
+                    compareBy((h) => Number(isEnhancedPerkHash(h))),
                   ),
                 );
 

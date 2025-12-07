@@ -26,7 +26,7 @@ import {
 } from 'app/utils/socket-utils';
 import { DestinyDisplayPropertiesDefinition } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
-import styles from './CompareColumns.m.scss';
+import * as styles from './CompareColumns.m.scss';
 import CompareStat from './CompareStat';
 
 /**
@@ -60,16 +60,12 @@ export function getColumns(
   const isGeneral = itemsType === 'general';
 
   const { statColumns, baseStatColumns, baseMasterworkStatColumns, d1ArmorQualityByStat } =
-    getStatColumns(
-      stats,
-      customStatDefs,
-      destinyVersion,
-      {
-        isArmor,
-        showStatLabel: true,
-      },
-      styles.stat,
-    );
+    getStatColumns(stats, customStatDefs, destinyVersion, {
+      isArmor,
+      showStatLabel: true,
+      extraStatInfo: true,
+      className: styles.stat,
+    });
 
   const preferredStatColumns =
     !isArmor || armorCompare === 'current'
@@ -78,13 +74,12 @@ export function getColumns(
         ? baseStatColumns
         : baseMasterworkStatColumns;
 
-  const customStatColumns = createCustomStatColumns(
-    customStatDefs,
-    styles.stat,
-    undefined, // `headerClassName` string
-    true, // `hideFormula` boolean
-    armorCompare === 'baseMasterwork', // `withMasterwork` boolean
-  );
+  const customStatColumns = createCustomStatColumns(customStatDefs, {
+    className: styles.stat,
+    hideFormula: true,
+    withMasterwork: armorCompare === 'baseMasterwork',
+    extraStatInfo: true,
+  });
 
   // TODO: maybe add destinyVersion / usecase to the ColumnDefinition type??
   const columns: ColumnDefinition[] = compact([
