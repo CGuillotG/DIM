@@ -18,7 +18,6 @@ interface CssExports {
   'tier4Pips': string;
   'tier5Pips': string;
   'tierPipOverlay': string;
-  'tierPips': string;
   'title': string;
   'type': string;
   'uncommon': string;
