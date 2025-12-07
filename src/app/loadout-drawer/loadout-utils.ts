@@ -7,10 +7,15 @@ import { DimCharacterStat, DimStore } from 'app/inventory/store-types';
 import { SocketOverrides } from 'app/inventory/store/override-sockets';
 import { isPluggableItem } from 'app/inventory/store/sockets';
 import { findItemsByBucket, getCurrentStore, getStore } from 'app/inventory/stores-helpers';
-import { ArmorBucketHashes, ArmorEnergyRules } from 'app/loadout-builder/types';
+import {
+  ArmorBucketHashes,
+  ArmorEnergyRules,
+  inGameArmorEnergyRules,
+} from 'app/loadout-builder/types';
 import { calculateAssumedItemEnergy, isAssumedMasterworked } from 'app/loadout/armor-upgrade-utils';
 import { UNSET_PLUG_HASH } from 'app/loadout/known-values';
 import { isLoadoutBuilderItem } from 'app/loadout/loadout-item-utils';
+import { fitMostMods } from 'app/loadout/mod-assignment-utils';
 import {
   isInsertableArmor2Mod,
   mapToAvailableModCostVariant,
@@ -328,12 +333,22 @@ export function getLoadoutStats(
     });
   }
 
+  // Assign the chosen mods to items so we can display them as if they were slotted
+  const { itemModAssignments, unassignedMods } = fitMostMods({
+    defs,
+    items: armor,
+    plannedMods: mods,
+    armorEnergyRules: armorEnergyRules ?? inGameArmorEnergyRules,
+  });
+
   const modStats = getTotalModStatChanges(
     defs,
-    mods,
+    unassignedMods,
     subclass,
     classType,
     includeRuntimeStatBenefits,
+    itemModAssignments,
+    armor,
   );
 
   for (const [statHash, value] of Object.entries(modStats)) {
@@ -616,8 +631,8 @@ export function getResolutionInfo(
   const bucketHash = def.bucketTypeHash || def.inventory?.bucketTypeHash || 0;
   const instanced = Boolean(
     (def.instanced || def.inventory?.isInstanceItem) &&
-      // Subclasses and some other types are technically instanced but should be matched by hash
-      !matchByHash.includes(bucketHash),
+    // Subclasses and some other types are technically instanced but should be matched by hash
+    !matchByHash.includes(bucketHash),
   );
 
   return {
@@ -852,9 +867,9 @@ export function isArmorModsOnly(defs: D2ManifestDefinitions, loadout: Loadout): 
 export function isFashionPlug(modDef: DestinyInventoryItemDefinition | undefined): boolean {
   return Boolean(
     modDef &&
-      (modDef.itemSubType === DestinyItemSubType.Shader ||
-        modDef.itemSubType === DestinyItemSubType.Ornament ||
-        modDef.itemType === DestinyItemType.Armor),
+    (modDef.itemSubType === DestinyItemSubType.Shader ||
+      modDef.itemSubType === DestinyItemSubType.Ornament ||
+      modDef.itemType === DestinyItemType.Armor),
   );
 }
 /**
@@ -908,8 +923,15 @@ export function resolveLoadoutModHashes(
         mods.push({ originalModHash, resolvedMod: item });
       } else {
         const deprecatedPlaceholderMod = defs.InventoryItem.get(deprecatedPlaceholderArmorModHash);
-        isPluggableItem(deprecatedPlaceholderMod) &&
+        if (isPluggableItem(deprecatedPlaceholderMod)) {
           mods.push({ originalModHash, resolvedMod: deprecatedPlaceholderMod });
+        } else {
+          throw new Error(
+            `Could not find deprecated placeholder mod definition, hash: ${
+              deprecatedPlaceholderArmorModHash
+            }`,
+          );
+        }
       }
     }
   }

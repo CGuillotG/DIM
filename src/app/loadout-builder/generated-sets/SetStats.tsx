@@ -1,6 +1,8 @@
+import { AlertIcon } from 'app/dim-ui/AlertIcon';
 import BungieImage from 'app/dim-ui/BungieImage';
 import { PressTip } from 'app/dim-ui/PressTip';
 import { t } from 'app/i18next-t';
+import { ActiveSetBonusInfo, SetBonusesStatus } from 'app/item-popup/SetBonus';
 import { MAX_STAT } from 'app/loadout/known-values';
 import { useD2Definitions } from 'app/manifest/selectors';
 import { AppIcon, powerIndicatorIcon } from 'app/shell/icons';
@@ -16,7 +18,7 @@ import {
   ModStatChanges,
   ResolvedStatConstraint,
 } from '../types';
-import styles from './SetStats.m.scss';
+import * as styles from './SetStats.m.scss';
 import { sumEnabledStats } from './utils';
 
 /**
@@ -32,6 +34,8 @@ export function TierlessSetStats({
   className,
   existingLoadoutName,
   equippedHashes,
+  setBonusStatus,
+  fotlWarning,
 }: {
   stats: ArmorStats;
   getStatsBreakdown: () => ModStatChanges;
@@ -41,9 +45,11 @@ export function TierlessSetStats({
   className?: string;
   existingLoadoutName?: string;
   equippedHashes: Set<number>;
+  setBonusStatus: ActiveSetBonusInfo;
+  fotlWarning?: boolean;
 }) {
   const defs = useD2Definitions()!;
-  const totalStats = sum(Object.values(stats)); // TODO: Is this useful?
+  const totalStats = sum(Object.values(stats));
   const countedStatsTotal = sumEnabledStats(stats, desiredStatRanges); // Total of the stats that were within the desired ranges
 
   // TODO: Lots of changes needed here once we drop tiers. Maybe we just show a
@@ -88,6 +94,12 @@ export function TierlessSetStats({
         <AppIcon icon={powerIndicatorIcon} />
         {maxPower}
       </span>
+      <SetBonusesStatus setBonusStatus={setBonusStatus} />
+      {fotlWarning && (
+        <PressTip tooltip={t('LoadoutBuilder.FOTLWildcardWarning')}>
+          <AlertIcon className={styles.statBarWarningIcon} />
+        </PressTip>
+      )}
       {existingLoadoutName ? (
         <span className={styles.existingLoadout}>
           {t('LoadoutBuilder.ExistingLoadout')}:{' '}

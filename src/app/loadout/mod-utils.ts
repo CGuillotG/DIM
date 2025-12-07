@@ -6,7 +6,6 @@ import { chainComparator, compareBy, compareByIndex } from 'app/utils/comparator
 import { isArmor2Mod } from 'app/utils/item-utils';
 import { LookupTable } from 'app/utils/util-types';
 import { DestinyInventoryItemDefinition } from 'bungie-api-ts/destiny2';
-import deprecatedMods from 'data/d2/deprecated-mods.json';
 import { emptyPlugHashes } from 'data/d2/empty-plug-hashes';
 import { BucketHashes, PlugCategoryHashes } from 'data/d2/generated-enums';
 import mutuallyExclusiveMods from 'data/d2/mutually-exclusive-mods.json';
@@ -57,15 +56,14 @@ export function isInsertableArmor2Mod(
   return Boolean(
     // is the def pluggable (def.plug exists)
     isPluggableItem(def) &&
-      // is the plugCategoryHash is in one of our known plugCategoryHashes (relies on d2ai).
-      isArmor2Mod(def) &&
-      // is it actually something relevant
-      !emptyPlugHashes.has(def.hash) &&
-      !deprecatedMods.includes(def.hash) &&
-      // Exclude consumable mods
-      def.inventory?.bucketTypeHash !== BucketHashes.Modifications &&
-      // this rules out classified items
-      def.itemTypeDisplayName !== undefined,
+    // is the plugCategoryHash is in one of our known plugCategoryHashes (relies on d2ai).
+    isArmor2Mod(def) &&
+    // is it actually something relevant
+    !emptyPlugHashes.has(def.hash) &&
+    // Exclude consumable mods
+    def.inventory?.bucketTypeHash !== BucketHashes.Modifications &&
+    // this rules out classified items
+    def.itemTypeDisplayName !== undefined,
   );
 }
 
@@ -99,6 +97,14 @@ export function groupModsByModType(plugs: PluggableInventoryItemDefinition[]) {
       return t('Loadouts.Prismatic.Grenade');
     } else if (plug.plug.plugCategoryIdentifier.endsWith('.prism.melee')) {
       return t('Loadouts.Prismatic.Melee');
+    } else if (plug.plug.plugCategoryIdentifier.endsWith('tuning.mods')) {
+      return t('Loadouts.TuningMods');
+    } else if (
+      plug.plug.plugCategoryIdentifier === 'enhancements.raid_v800' &&
+      plug.itemTypeDisplayName.length > 50 // stop using our translation if it gets fixed
+    ) {
+      // https://github.com/Bungie-net/api/issues/1920
+      return t('Loadouts.SalvationsEdgeMods');
     } else {
       return plug.itemTypeDisplayName;
     }

@@ -23,7 +23,7 @@ import {
   vendorsByCharacterSelector,
 } from '../selectors';
 import ArtifactUnlocks from './ArtifactUnlocks';
-import styles from './SingleVendor.m.scss';
+import * as styles from './SingleVendor.m.scss';
 
 /**
  * A page that loads its own info for a single vendor, so we can link to a vendor or show engram previews.
@@ -89,10 +89,11 @@ export default function SingleVendor({
   // * load all classes?
   const vendor = vendorResponse?.vendors.data?.[vendorHash];
 
-  const destinationDef =
-    vendor?.vendorLocationIndex && vendorDef.locations[vendor.vendorLocationIndex]
-      ? defs.Destination.get(vendorDef.locations[vendor.vendorLocationIndex].destinationHash)
-      : undefined;
+  // Unadvertised nullability: DestinyVendorDefinition.locations
+  const destinationHash =
+    vendor?.vendorLocationIndex &&
+    vendorDef.locations?.[vendor.vendorLocationIndex].destinationHash;
+  const destinationDef = destinationHash ? defs.Destination.get(destinationHash) : undefined;
   const placeDef = destinationDef && defs.Place.get(destinationDef.placeHash);
 
   const placeString = [destinationDef?.displayProperties.name, placeDef?.displayProperties.name]

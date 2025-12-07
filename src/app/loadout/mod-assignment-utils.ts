@@ -14,8 +14,9 @@ import { count, mapValues, sumBy } from 'app/utils/collections';
 import { compareBy } from 'app/utils/comparators';
 import { emptyArray } from 'app/utils/empty';
 import {
+  getArmor3TuningStat,
   getModTypeTagByPlugCategoryHash,
-  getSpecialtySocketMetadatas,
+  getSpecialtySocketMetadata,
   isArtifice,
 } from 'app/utils/item-utils';
 import { warnLog } from 'app/utils/log';
@@ -66,6 +67,11 @@ export interface ModMap {
    * also don't want to ever pass these to the Loadout Optimizer process.
    */
   artificeMods: PluggableInventoryItemDefinition[];
+  /**
+   * Like artifice mods, tuning mods are free, but not all tuning mods fit onto
+   * all items with tuning mod sockets.
+   */
+  tuningMods: PluggableInventoryItemDefinition[];
 }
 
 /**
@@ -80,6 +86,7 @@ export function categorizeArmorMods(
   const generalMods: PluggableInventoryItemDefinition[] = [];
   const activityMods: PluggableInventoryItemDefinition[] = [];
   const artificeMods: PluggableInventoryItemDefinition[] = [];
+  const tuningMods: PluggableInventoryItemDefinition[] = [];
   const bucketSpecificMods: { [plugCategoryHash: number]: PluggableInventoryItemDefinition[] } = {};
 
   const validMods: PluggableInventoryItemDefinition[] = [];
@@ -110,6 +117,12 @@ export function categorizeArmorMods(
     } else if (plannedMod.plug.plugCategoryHash === PlugCategoryHashes.EnhancementsArtifice) {
       artificeMods.push(plannedMod);
       validMods.push(plannedMod);
+    } else if (
+      plannedMod.plug.plugCategoryHash ===
+      PlugCategoryHashes.CoreGearSystemsArmorTieringPlugsTuningMods
+    ) {
+      tuningMods.push(plannedMod);
+      validMods.push(plannedMod);
     } else {
       const bucketHash = plugCategoryHashToBucketHash[pch];
       if (bucketHash !== undefined) {
@@ -128,6 +141,7 @@ export function categorizeArmorMods(
       activityMods,
       artificeMods,
       bucketSpecificMods,
+      tuningMods,
     },
     unassignedMods,
   };
@@ -314,11 +328,11 @@ export function fitMostMods({
   // combat and activity mods can be slotted into an item.
   const itemSocketMetadata = mapValues(
     keyBy(items, (item) => item.id),
-    (item) => getSpecialtySocketMetadatas(item),
+    (item) => getSpecialtySocketMetadata(item),
   );
 
   const {
-    modMap: { activityMods, generalMods, artificeMods, bucketSpecificMods },
+    modMap: { activityMods, generalMods, artificeMods, tuningMods, bucketSpecificMods },
     unassignedMods: invalidMods,
   } = categorizeArmorMods(plannedMods, items);
 
@@ -353,7 +367,6 @@ export function fitMostMods({
         targetItemIndex = 0;
       }
     }
-
     if (targetItemIndex !== -1) {
       bucketSpecificAssignments[artificeItems[targetItemIndex].id].assigned.push(artificeMod);
       artificeItems.splice(targetItemIndex, 1);
@@ -362,7 +375,34 @@ export function fitMostMods({
     }
   }
 
-  // A object of item id's to energy information. This is so we can precalculate
+  // Tuning mods are also free, but we assign them in exactly the order they
+  // appear in the mods list to the list of armor (assuming armor is ordered
+  // helmet, arms, chest, legs, classitem). We *don't* try to minimize how many
+  // mod changes are made. This is because balanced mods provide different stat
+  // benefits depending on what item they're assigned to (+1 to the three lowest
+  // stats), so if we assigned them in a different order than they were chosen
+  // in the process loop, we might end up with different stats than the user
+  // expected.
+  const tuningItems = items.filter((i) => getArmor3TuningStat(i) !== undefined);
+  for (const tuningMod of tuningMods) {
+    // Find the tuning stat hash, which is the stat that gets +5 when this mod
+    // is applied. For "Balanced Tuning" this should be 0.
+    const tuningStatHash = tuningMod.investmentStats?.find((s) => s.value > 1)?.statTypeHash ?? 0;
+    const targetItemIndex = tuningItems.findIndex((i) =>
+      tuningStatHash === 0
+        ? true // Balanced tuning can go on any item with a tuning socket
+        : // Otherwise the item's tuning stat must match the mod's
+          getArmor3TuningStat(i) === tuningStatHash,
+    );
+    if (targetItemIndex !== -1) {
+      bucketSpecificAssignments[tuningItems[targetItemIndex].id].assigned.push(tuningMod);
+      tuningItems.splice(targetItemIndex, 1);
+    } else {
+      unassignedMods.push(tuningMod);
+    }
+  }
+
+  // A object of item ids to energy information. This is so we can precalculate
   // working energy used, capacity and type and use this to validate whether a mod
   // can be used in an item.
   const itemEnergies = mapValues(
@@ -524,13 +564,14 @@ function getArmorSocketsAndMods(
     // but the API considers it to be disabled.
     .filter(
       (socket) =>
+        socket.visibleInGame &&
         socket.plugged &&
         // TODO: Edge of Fate: This is a hacky fix for the masterwork socket
         // that has appeared. We should maybe exclude it from the socket list
         // entirely since it seems redundant with the energy track?
         socket.socketDefinition.socketTypeHash !== 1843767421,
     )
-    // Artificer sockets only plug a subset of the bucket specific mods so we sort by the size
+    // Artifice sockets only plug a subset of the bucket specific mods so we sort by the size
     // of the plugItems in the plugset so we use that first if possible. This is optional and
     // simply prefers plugging artifact mods into artifice sockets if available.
     .sort(compareBy((socket) => (socket.plugSet ? socket.plugSet.plugs.length : 999)));
@@ -665,7 +706,7 @@ export function pickPlugPositions(
     // If a destination socket couldn't be found for this plug, something is seriously? wrong
     if (destinationSocketIndex === -1) {
       throw new Error(
-        `We couldn't find anywhere to plug the mod ${modToInsert.displayProperties.name} (${modToInsert.hash})`,
+        `We couldn't find anywhere to plug the mod ${modToInsert.displayProperties.name} (${modToInsert.hash}) into the item ${item.name}`,
       );
     }
 
@@ -889,15 +930,13 @@ export function createPluggingStrategy(
 
 function isActivityModValid(
   activityMod: PluggableInventoryItemDefinition,
-  itemSocketMetadata: ModSocketMetadata[] | undefined,
+  itemSocketMetadata: ModSocketMetadata | undefined,
   itemEnergy: ItemEnergy,
 ) {
   const modTag = getModTypeTagByPlugCategoryHash(activityMod.plug.plugCategoryHash);
 
   return (
-    isModEnergyValid(itemEnergy, activityMod) &&
-    modTag &&
-    itemSocketMetadata?.some((metadata) => metadata.slotTag === modTag)
+    isModEnergyValid(itemEnergy, activityMod) && modTag && itemSocketMetadata?.slotTag === modTag
   );
 }
 

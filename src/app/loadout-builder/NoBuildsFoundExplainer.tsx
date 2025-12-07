@@ -10,7 +10,7 @@ import { AppIcon, banIcon } from 'app/shell/icons';
 import { compact, filterMap, uniqBy } from 'app/utils/collections';
 import { DestinyClass } from 'bungie-api-ts/destiny2';
 import { Dispatch } from 'react';
-import styles from './NoBuildsFoundExplainer.m.scss';
+import * as styles from './NoBuildsFoundExplainer.m.scss';
 import ExoticArmorChoice from './filter/ExoticArmorChoice';
 import LockedItem from './filter/LockedItem';
 import { FilterInfo } from './item-filter';
@@ -29,8 +29,6 @@ interface ProblemDescription {
   suggestions: ActionableSuggestion[];
 }
 
-/** How many sets can be excluded by upper bounds before we warn. Not too high because upper bounds are rarely useful. */
-const UPPER_STAT_BOUNDS_WARN_RATIO = 0.8;
 /**
  * How many sets can be excluded by lower bounds before we warn.
  * Quite high because LO's purpose is literally to sift through tons of garbage sets.
@@ -326,25 +324,7 @@ export default function NoBuildsFoundExplainer({
     const isInteresting = ({ timesChecked, timesFailed }: RejectionRate, threshold: number) =>
       timesChecked > 0 && timesFailed / timesChecked >= threshold;
 
-    const {
-      lowerBoundsExceeded,
-      upperBoundsExceeded,
-      modsStatistics: modsStats,
-    } = processInfo.statistics;
-
-    if (isInteresting(upperBoundsExceeded, UPPER_STAT_BOUNDS_WARN_RATIO)) {
-      problems.push({
-        id: 'upperBoundsExceeded',
-        description: t('LoadoutBuilder.NoBuildsFoundExplainer.UpperBoundsFailed'),
-        suggestions: compact([
-          {
-            id: 'hint',
-            contents: t('LoadoutBuilder.NoBuildsFoundExplainer.MaybeIncreaseUpperBounds'),
-          },
-          unpinItemsSuggestion(),
-        ]),
-      });
-    }
+    const { lowerBoundsExceeded, modsStatistics: modsStats } = processInfo.statistics;
 
     if (isInteresting(lowerBoundsExceeded, LOWER_STAT_BOUNDS_WARN_RATIO)) {
       problems.push({

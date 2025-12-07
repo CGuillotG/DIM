@@ -4,10 +4,10 @@ import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { DimItem } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { ProcessInputs } from 'app/loadout-builder/process-worker/process';
-import { ProcessResult } from 'app/loadout-builder/process-worker/types';
+import { ProcessStatistics } from 'app/loadout-builder/process-worker/types';
 import { getAutoMods } from 'app/loadout-builder/process/mappers';
-import type { runProcess } from 'app/loadout-builder/process/process-wrapper';
-import { ArmorBucketHashes, ArmorSet, StatRanges } from 'app/loadout-builder/types';
+import type { runProcess, RunProcessResult } from 'app/loadout-builder/process/process-wrapper';
+import { ArmorBucketHashes, StatRanges } from 'app/loadout-builder/types';
 import { randomSubclassConfiguration } from 'app/loadout-drawer/auto-loadouts';
 import { addItem, setLoadoutParameters } from 'app/loadout-drawer/loadout-drawer-reducer';
 import {
@@ -28,7 +28,7 @@ import {
   DestinyProfileResponse,
 } from 'node_modules/bungie-api-ts/destiny2/interfaces';
 import { classStatModHash } from 'testing/test-item-utils';
-import { getTestDefinitions, getTestProfile, getTestStores } from 'testing/test-utils';
+import { fetchTestProfile, getTestDefinitions, getTestStores } from 'testing/test-utils';
 import { analyzeLoadout } from './analysis';
 import { LoadoutAnalysisContext, LoadoutFinding } from './types';
 
@@ -46,7 +46,7 @@ const analyze = async (
 
 function noopProcessWorkerMock(..._args: Parameters<typeof runProcess>): {
   cleanup: () => void;
-  resultPromise: Promise<Omit<ProcessResult, 'sets'> & { sets: ArmorSet[]; processTime: number }>;
+  resultPromise: Promise<RunProcessResult>;
   input: ProcessInputs;
 } {
   return {
@@ -55,7 +55,7 @@ function noopProcessWorkerMock(..._args: Parameters<typeof runProcess>): {
       combos: 0,
       processTime: 0,
       sets: [],
-      processInfo: undefined,
+      processInfo: undefined as unknown as ProcessStatistics,
       statRangesFiltered: Object.fromEntries(
         armorStats.map((h) => [
           h,
@@ -76,7 +76,7 @@ beforeAll(async () => {
   [defs, stores, profileResponse] = await Promise.all([
     getTestDefinitions(),
     getTestStores(),
-    getTestProfile(),
+    fetchTestProfile(),
   ]);
   allItems = stores.flatMap((store) => store.items);
   store = stores.find((s) => s.classType === DestinyClass.Hunter)!;
@@ -91,9 +91,6 @@ beforeAll(async () => {
       buckets: getBuckets(defs),
       customStats: [],
       itemComponents: undefined,
-    },
-    savedLoStatConstraintsByClass: {
-      [DestinyClass.Hunter]: armorStats.map((statHash) => ({ statHash })),
     },
     autoModDefs: getAutoMods(defs, unlockedPlugs),
     unlockedPlugs,

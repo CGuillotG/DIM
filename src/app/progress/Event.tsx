@@ -12,7 +12,7 @@ import {
   DestinyRecordState,
 } from 'bungie-api-ts/destiny2';
 import { useSelector } from 'react-redux';
-import styles from './Event.m.scss';
+import * as styles from './Event.m.scss';
 import Pursuit from './Pursuit';
 import PursuitGrid from './PursuitGrid';
 import { sortPursuits } from './Pursuits';
@@ -58,12 +58,12 @@ export function Event({
   const classSpecificNode =
     classSpecificNodeHash && defs.PresentationNode.get(classSpecificNodeHash.presentationNodeHash);
 
-  if (!classSpecificNode) {
-    return null;
-  }
+  const presentationNodes = classSpecificNode
+    ? [classSpecificNode]
+    : childrenNodes.map((n) => defs.PresentationNode.get(n.presentationNodeHash));
 
-  const records = filterMap(classSpecificNode.children.records, (h) =>
-    toRecord(defs, profileResponse, h.recordHash),
+  const records = presentationNodes.flatMap((n) =>
+    filterMap(n.children.records, (h) => toRecord(defs, profileResponse, h.recordHash)),
   );
 
   const pursuits = records

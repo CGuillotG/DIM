@@ -30,7 +30,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { BucketPlaceholder } from '../loadout-ui/BucketPlaceholder';
 import PlugDef from '../loadout-ui/PlugDef';
-import styles from './FashionDrawer.m.scss';
+import * as styles from './FashionDrawer.m.scss';
 
 interface PickPlugState {
   item: DimItem;
@@ -519,7 +519,7 @@ function FashionSocket({
         <PlugDef
           onClick={handleOrnamentClick}
           plug={plug as PluggableInventoryItemDefinition}
-          forClassType={undefined}
+          item={exampleItem}
         />
       ) : (
         <PressTip

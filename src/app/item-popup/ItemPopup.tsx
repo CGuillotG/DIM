@@ -19,7 +19,7 @@ import clsx from 'clsx';
 import { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DesktopItemActions, { menuClassName } from './DesktopItemActions';
-import styles from './ItemPopup.m.scss';
+import * as styles from './ItemPopup.m.scss';
 import ItemPopupHeader from './ItemPopupHeader';
 import { useItemPopupTabs } from './ItemPopupTabs';
 import ItemTagHotkeys from './ItemTagHotkeys';
@@ -84,7 +84,7 @@ export default function ItemPopup({
       useSelector(streamDeckEnabledSelector)
     : false;
 
-  const failureStrings = Array.from(extraInfo?.failureStrings ?? []);
+  const failureStrings = Array.from(new Set(extraInfo?.failureStrings ?? []));
 
   const header = (
     <div className={styles.header}>

@@ -113,6 +113,7 @@ const toD2DamageType = memoize(
         hasIcon: true,
         highResIcon: '',
         iconSequences: [],
+        iconHash: 0,
       },
       transparentIconPath: damageType.transparentIconPath,
       hash: damageType.hash,
@@ -304,9 +305,9 @@ function makeItem(
     secondaryIcon: itemDef.secondaryIcon,
     notransfer: Boolean(
       currentBucket.inPostmaster ||
-        itemDef.nonTransferrable ||
-        !itemDef.allowActions ||
-        itemDef.redacted,
+      itemDef.nonTransferrable ||
+      !itemDef.allowActions ||
+      itemDef.redacted,
     ),
     id: item.itemInstanceId,
     instanced: item.itemInstanceId !== '0',
@@ -334,8 +335,8 @@ function makeItem(
         item.lockable),
     trackable: Boolean(
       currentBucket.inProgress &&
-        (currentBucket.hash === D1BucketHashes.Bounties ||
-          currentBucket.hash === D1BucketHashes.Quests),
+      (currentBucket.hash === D1BucketHashes.Bounties ||
+        currentBucket.hash === D1BucketHashes.Quests),
     ),
     tracked: item.state === 2,
     locked: item.locked,

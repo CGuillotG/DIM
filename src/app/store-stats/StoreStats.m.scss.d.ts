@@ -2,8 +2,10 @@
 // Please do not change this file!
 interface CssExports {
   'characterStats': string;
+  'setBonuses': string;
   'statContainer': string;
+  'topRow': string;
   'vaultStats': string;
 }
 export const cssExports: CssExports;
-export default cssExports;
+export = cssExports;

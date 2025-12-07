@@ -3,7 +3,7 @@ import { useD2Definitions } from 'app/manifest/selectors';
 import { WELL_RESTED_PERK } from 'app/search/d2-known-values';
 import { DestinyProfileResponse } from 'bungie-api-ts/destiny2';
 import BungieImage from '../dim-ui/BungieImage';
-import { isWellRested } from '../inventory/store/well-rested';
+import { useIsWellRested } from '../inventory/store/well-rested';
 
 export default function WellRestedPerkIcon({
   profileInfo,
@@ -11,7 +11,7 @@ export default function WellRestedPerkIcon({
   profileInfo: DestinyProfileResponse;
 }) {
   const defs = useD2Definitions()!;
-  const wellRestedInfo = isWellRested(defs, profileInfo);
+  const wellRestedInfo = useIsWellRested(defs, profileInfo);
 
   if (!wellRestedInfo.wellRested) {
     return null;
@@ -22,7 +22,7 @@ export default function WellRestedPerkIcon({
   }
   const perkDisplay = wellRestedPerk.displayProperties;
   return (
-    <div className="well-rested milestone-quest">
+    <div className="milestone-quest">
       <div className="milestone-icon">
         <BungieImage
           className="perk milestone-img"
@@ -31,9 +31,9 @@ export default function WellRestedPerkIcon({
         />
         {wellRestedInfo.weeklyProgress !== undefined && wellRestedInfo.requiredXP !== undefined && (
           <span>
-            {wellRestedInfo.weeklyProgress.toLocaleString()}
+            <span>{wellRestedInfo.weeklyProgress.toLocaleString()}</span>
             <wbr />/<wbr />
-            {wellRestedInfo.requiredXP.toLocaleString()}
+            <span>{wellRestedInfo.requiredXP.toLocaleString()}</span>
           </span>
         )}
       </div>

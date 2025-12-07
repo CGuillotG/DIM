@@ -14,7 +14,7 @@ import foundry from 'images/foundry.png';
 import ishtarLogo from 'images/ishtar-collective.svg';
 import lightgg from 'images/lightgg.png';
 import { useSelector } from 'react-redux';
-import styles from './Links.m.scss';
+import * as styles from './Links.m.scss';
 
 export default function Links({ item }: { item: DimItem }) {
   const language = useSelector(languageSelector);
@@ -89,7 +89,7 @@ function buildLightGGSockets(item: DimItem) {
   const perkValues = getWeaponSocketInfo(item);
 
   if (perkValues) {
-    return `?p=${[...perkValues.largePerks, ...perkValues.traits, perkValues.masterwork, perkValues.weaponMod].map((s) => s || '').join(',')}`;
+    return `?p=${[...perkValues.largePerks, ...perkValues.traits, perkValues.masterwork, perkValues.weaponMod].map((s) => String(s)).join(',')}`;
   }
 
   return '';

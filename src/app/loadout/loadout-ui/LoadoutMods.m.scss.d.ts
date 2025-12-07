@@ -3,10 +3,11 @@
 interface CssExports {
   'artifactUnlock': string;
   'buttons': string;
+  'fineprint': string;
   'missingItem': string;
   'modsGrid': string;
   'modsPlaceholder': string;
   'pickModButton': string;
 }
 export const cssExports: CssExports;
-export default cssExports;
+export = cssExports;

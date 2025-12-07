@@ -2,9 +2,14 @@
 // Please do not change this file!
 interface CssExports {
   'bucket': string;
+  'comparisonModeDescription': string;
+  'comparisonModeHint': string;
+  'comparisonModeInfo': string;
+  'comparisonModebutton': string;
+  'modIcon': string;
   'options': string;
   'organizerLink': string;
   'scroller': string;
 }
 export const cssExports: CssExports;
-export default cssExports;
+export = cssExports;

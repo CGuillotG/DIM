@@ -18,14 +18,14 @@ jobs:
       name: beta
       url: https://beta.dim.gg
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2 # So sentry can get the previous commit
 
       - uses: pnpm/action-setup@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: pnpm
@@ -64,9 +64,11 @@ jobs:
           DIM_API_KEY: ${{ secrets.DIM_API_KEY }}
 
       # Send webpack stats and build information to RelativeCI
-      - name: Upload bundle stats artifact
-        uses: relative-ci/agent-upload-artifact-action@v2
+      - name: Send bundle stats and build information to RelativeCI
+        uses: relative-ci/agent-action@v3.2.1
         with:
+          key: ${{ secrets.RELATIVE_CI_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           webpackStatsFile: ./webpack-stats.json
 
       - name: Check Syntax

@@ -55,7 +55,7 @@ import { errorMessage } from 'app/utils/errors';
 import { DimLanguage } from 'app/i18n';
 import { localizedSorter } from 'app/utils/intl';
 
-import styles from './ItemTable.m.scss';
+import * as styles from './ItemTable.m.scss';
 import { ItemCategoryTreeNode, armorTopLevelCatHashes } from './ItemTypeSelector';
 import { ColumnDefinition, ColumnSort, Row, SortDirection, TableContext } from './table-types';
 
@@ -213,12 +213,10 @@ export default function ItemTable({ categories }: { categories: ItemCategoryTree
   const filteredColumns = useMemo(
     () =>
       compact(
-        enabledColumns.flatMap((id) =>
-          columns.filter(
-            (column) =>
-              id === getColumnSelectionId(column) &&
-              (column.limitToClass === undefined || column.limitToClass === classIfAny),
-          ),
+        columns.filter(
+          (column) =>
+            enabledColumns.includes(getColumnSelectionId(column)) &&
+            (column.limitToClass === undefined || column.limitToClass === classIfAny),
         ),
       ),
     [columns, enabledColumns, classIfAny],
@@ -284,7 +282,9 @@ export default function ItemTable({ categories }: { categories: ItemCategoryTree
             if (e.shiftKey) {
               const node = e.target as HTMLElement;
               const filter = column.filter!(
-                node.dataset.filterValue ?? row.values[column.id],
+                node.dataset.filterValue ??
+                  node.parentElement?.dataset.filterValue ?? // look for filter-value at most 1 element up
+                  row.values[column.id],
                 row.item,
               );
               if (filter !== undefined) {
@@ -591,7 +591,8 @@ export function sortRows(
       if (column) {
         const sort = column.sort;
         const compare: Comparator<Row> = sort
-          ? (row1, row2) => sort(row1.values[column.id], row2.values[column.id])
+          ? (row1, row2) =>
+              sort(row1.values[column.id], row2.values[column.id], row1.item, row2.item)
           : unsortedRows.some((row) => typeof row.values[column.id] === 'string')
             ? localizedSorter(language, (row) => (row.values[column.id] ?? '') as string)
             : compareBy((row) => row.values[column.id] ?? 0);

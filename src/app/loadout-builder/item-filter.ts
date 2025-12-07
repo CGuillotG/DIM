@@ -1,9 +1,16 @@
 import { SetBonusCounts } from '@destinyitemmanager/dim-api-types';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { DimItem, PluggableInventoryItemDefinition } from 'app/inventory/item-types';
+import { calculateAssumedMasterworkStats } from 'app/loadout-drawer/loadout-utils';
+import { calculateAssumedItemEnergy } from 'app/loadout/armor-upgrade-utils';
+import { fotlWildcardHashes } from 'app/loadout/known-values';
 import { ModMap, assignBucketSpecificMods } from 'app/loadout/mod-assignment-utils';
+import { armorStats } from 'app/search/d2-known-values';
 import { ItemFilter } from 'app/search/filter-types';
+import { sumBy } from 'app/utils/collections';
+import { getModTypeTagByPlugCategoryHash, getSpecialtySocketMetadata } from 'app/utils/item-utils';
 import { warnLog } from 'app/utils/log';
+import { computeStatDupeLower } from 'app/utils/stats';
 import { BucketHashes } from 'data/d2/generated-enums';
 import { sum } from 'es-toolkit';
 import { Draft } from 'immer';
@@ -30,6 +37,7 @@ export interface FilterInfo {
       totalConsidered: number;
       cantFitMods: number;
       finalValid: number;
+      removedStrictlyWorse: number;
       removedBySearchFilter: number;
     };
   };
@@ -76,6 +84,7 @@ export function filterItems({
     cantFitMods: 0,
     finalValid: 0,
     removedBySearchFilter: 0,
+    removedStrictlyWorse: 0,
   };
 
   const filterInfo: FilterInfo = {
@@ -111,12 +120,24 @@ export function filterItems({
   const lockedExoticDef =
     lockedExoticHash && lockedExoticHash > 0 ? defs.InventoryItem.get(lockedExoticHash) : undefined;
 
-  // If the user has locked an exotic, AND they have asked for set bonuses that
-  // require 4 items, we can filter down to just items that have that set bonus.
-  let setBonusHashes: number[] = [];
+  const requiredModTags = new Set<string>();
+  for (const mod of lockedModMap.activityMods) {
+    const modTag = getModTypeTagByPlugCategoryHash(mod.plug.plugCategoryHash);
+    if (modTag) {
+      requiredModTags.add(modTag);
+    }
+  }
+  const requiredModTagsArray = Array.from(requiredModTags).sort();
+
+  // Currently set bonuses take 2 or 4 pieces. Exotics are 1 item. Armor is 5 pieces total.
+  // 2 + 2 + 1 = 4 + 1 = 5
+  // If the user has locked an exotic, AND they have asked for set bonus(es) that require 4 items,
+  // either 4 of the same set, or 2 each of 2 sets, then  filter legendaries items to those sets.
+
+  /** If set, only use items with these set bonuses. */
+  let includeOnlySetBonusHashes: undefined | number[];
   if (setBonuses && sum(Object.values(setBonuses)) >= 4 && lockedExoticDef) {
-    // If the user has set bonuses, we can filter down to just items that have that set bonus.
-    setBonusHashes = Object.keys(setBonuses).map(Number);
+    includeOnlySetBonusHashes = Object.keys(setBonuses).map(Number);
   }
 
   for (const bucket of ArmorBucketHashes) {
@@ -170,9 +191,11 @@ export function filterItems({
     }
 
     // If every non-exotic requires set bonuses...
-    if (setBonusHashes.length && !lockedExoticApplicable) {
+    if (includeOnlySetBonusHashes && !lockedExoticApplicable) {
       firstPassFilteredItems = firstPassFilteredItems.filter(
-        (item) => item.setBonus && setBonusHashes.includes(item.setBonus.hash),
+        (item) =>
+          (item.setBonus && includeOnlySetBonusHashes.includes(item.setBonus.hash)) ||
+          fotlWildcardHashes.has(item.hash),
       );
     }
 
@@ -197,17 +220,73 @@ export function filterItems({
     // If a search filters out all the possible items for a bucket, we ignore
     // the search. This allows users to filter some buckets without getting
     // stuck making no sets.
-    filteredItems[bucket] = searchFilteredItems.length ? searchFilteredItems : itemsThatFitMods;
+    let finalFilteredItems = searchFilteredItems.length ? searchFilteredItems : itemsThatFitMods;
     const removedBySearchFilter = searchFilteredItems.length
       ? itemsThatFitMods.length - searchFilteredItems.length
       : 0;
     filterInfo.searchQueryEffective ||= removedBySearchFilter > 0;
 
+    let removedStrictlyWorse = 0;
+    if (finalFilteredItems.length > 1) {
+      // One last pass - remove items that are strictly worse than others. This
+      // uses the same general logic as the `is:statlower` search filter, but
+      // also considers the energy capacity of the items and the set of activity
+      // mod slots they have. So if two items have the same stats, but one has
+      // more energy capacity or more relevant slots, it will be kept. Since we
+      // reuse the logic from `is:statlower`, this also takes into account
+      // artifice/tuning mods.
+      // This duplicates some logic from mapDimItemToProcessItems, but it's
+      // easier to filter items out here than to do it later.
+      const getStats = (item: DimItem) => {
+        // Masterwork them up to the assumed masterwork level
+        const masterworkedStatValues = calculateAssumedMasterworkStats(item, armorEnergyRules);
+        const compatibleModSeason = getSpecialtySocketMetadata(item)?.slotTag;
+        const capacity = calculateAssumedItemEnergy(item, armorEnergyRules);
+        const modsCost = lockedModsForPlugCategoryHash
+          ? sumBy(lockedModsForPlugCategoryHash, (mod) => mod.plug.energyCost?.energyCost ?? 0)
+          : 0;
+        const remainingEnergyCapacity = capacity - modsCost;
+        return [
+          ...armorStats.map((statHash) => ({
+            statHash,
+            value: masterworkedStatValues[statHash] ?? 0,
+          })),
+          { statHash: -2, value: remainingEnergyCapacity },
+          ...requiredModTagsArray.map((tag) => ({
+            statHash: -3, // ←↑ Dummy/temp stat hashes. Just need to not match real armor stat hashes.
+            value: compatibleModSeason === tag ? 1 : 0,
+          })),
+          // Add a comparison stat for each required set bonus. An item that has that bonus scores 1, others score zero.
+          // Statlower will make sure any matching set bonus item won't lose to an item without it.
+          ...Object.keys(setBonuses || {}).map((h) => {
+            const setBonusHash = parseInt(h, 10);
+            return {
+              statHash: -10 - setBonusHash,
+              value: item.setBonus?.hash === setBonusHash ? 1 : 0,
+            };
+          }),
+        ];
+      };
+
+      const strictlyWorseItemIds = computeStatDupeLower(
+        finalFilteredItems,
+        // Consider all stats, even if they're not enabled - we still want the
+        // highest total stats.
+        armorStats,
+        // Use our own getStats function to consider energy capacity and activity mod slots
+        getStats,
+      );
+      finalFilteredItems = finalFilteredItems.filter((item) => !strictlyWorseItemIds.has(item.id));
+      removedStrictlyWorse = strictlyWorseItemIds.size;
+    }
+
+    filteredItems[bucket] = finalFilteredItems;
     filterInfo.perBucketStats[bucket] = {
       totalConsidered: firstPassFilteredItems.length,
       cantFitMods: withoutExcluded.length - itemsThatFitMods.length,
       removedBySearchFilter,
-      finalValid: filteredItems[bucket].length,
+      removedStrictlyWorse,
+      finalValid: finalFilteredItems.length,
     };
   }
 

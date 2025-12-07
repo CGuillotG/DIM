@@ -46,12 +46,13 @@
 }
 
 .centered {
-  text-align: center !important;
+  text-align: center;
+  justify-content: center;
 }
 
 .dmg {
   composes: centered;
-  padding-top: calc(var(--item-size) * 0.75 * 0.5 - 2px) !important;
+  padding-top: calc(var(--item-size) * 0.75 * 0.5 - 2px);
 }
 .dmgHeader {
   composes: centered;
@@ -61,12 +62,12 @@
 .icon {
   --icon-item-size: calc(var(--item-size) * 0.75);
   composes: centered;
-  padding-top: 4px !important;
+  padding-top: 4px;
   min-width: calc(var(--item-size) * 0.75);
   left: calc(30px + env(safe-area-inset-left));
   position: sticky;
   top: calc(var(--header-height) + var(--table-header-height) + var(--item-table-toolbar-height));
-  z-index: table.$header-cells !important;
+  z-index: table.$header-cells;
   background: var(--org-row-bg);
   > :global(.item) {
     --item-size: var(--icon-item-size) !important;
@@ -100,15 +101,24 @@
   color: #d14334;
 }
 
-.perkLike {
-  padding-top: calc(var(--item-size) * 0.5 * 0.5 - 5px) !important;
-}
-
 .modPerks {
   composes: flexColumn from '../dim-ui/common.m.scss';
   break-inside: avoid;
   gap: 4px;
-  padding-left: 5px;
+  padding-left: 3px;
+}
+
+.perkLike {
+  padding-top: calc(var(--item-size) * 0.5 * 0.5 - 5px);
+  > *:nth-last-child(n + 2) {
+    margin-bottom: 4px;
+  }
+  .modPerks {
+    flex: 0;
+    min-width: 160px;
+    flex-basis: 160px;
+    padding-left: 3px;
+  }
 }
 
 .perks {
@@ -117,14 +127,6 @@
   height: 100%;
   box-sizing: border-box;
   column-gap: 8px;
-  > *:nth-last-child(n + 2) {
-    margin-bottom: 4px;
-  }
-  .modPerks {
-    flex: 0;
-    min-width: 160px;
-    flex-basis: 160px;
-  }
 }
 .isPerk {
   margin-left: 0;
@@ -139,7 +141,7 @@
   composes: flexRow from '../dim-ui/common.m.scss';
   composes: noWrap;
   align-items: flex-start;
-  gap: 3px;
+  gap: 2px;
 }
 .miniPerkContainer {
   --item-size: 18px;
@@ -168,10 +170,27 @@
     brightness(103%) contrast(91%);
 }
 
+// copy pasted from src/app/item-popup/PlugTooltip.m.scss with spacing tweaks
+.enhancedArrow {
+  width: 25px;
+  display: flex;
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 11px;
+    vertical-align: text-bottom;
+    mask-image: url('images/enhancedArrow.svg');
+    background-color: $enhancedYellow;
+    margin-left: 1px;
+    margin-top: 3px;
+  }
+}
+
 .perksGrid {
-  --mod-size: calc(28 / 50 * var(--item-size));
-  --perk-size: calc(28 / 50 * var(--item-size));
-  padding-top: 4px !important;
+  --mod-size: calc(#{dim-item-px(28)});
+  --perk-size: calc(#{dim-item-px(28)});
+  padding-top: 4px;
   padding-bottom: 4px;
 
   @include phone-portrait {
@@ -197,7 +216,7 @@
   }
 }
 
-$modslotSize: 30px;
+$modslotSize: 24px;
 .modslotIcon {
   height: $modslotSize;
   width: $modslotSize;
@@ -205,7 +224,12 @@ $modslotSize: 30px;
 
 .modslot {
   composes: centered;
-  padding-top: calc(4px + (var(--item-size) * 0.75 - #{$modslotSize}) / 2) !important;
+  padding-top: calc(4px + (var(--item-size) * 0.75 - #{$modslotSize}) / 2);
+}
+
+.loadouts {
+  flex-direction: column;
+  gap: 4px;
 }
 
 .loadout {

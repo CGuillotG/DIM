@@ -1,6 +1,6 @@
 import { SetBonusCounts } from '@destinyitemmanager/dim-api-types';
 import { PluggableInventoryItemDefinition } from 'app/inventory/item-types';
-import { getTagSelector, unlockedPlugSetItemsSelector } from 'app/inventory/selectors';
+import { unlockedPlugSetItemsSelector } from 'app/inventory/selectors';
 import { DimStore } from 'app/inventory/store-types';
 import { ModMap } from 'app/loadout/mod-assignment-utils';
 import { useD2Definitions } from 'app/manifest/selectors';
@@ -8,10 +8,9 @@ import { infoLog } from 'app/utils/log';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { ProcessInputs } from '../process-worker/process';
-import { ProcessStatistics } from '../process-worker/types';
+import { ProcessArmorSet, ProcessStatistics } from '../process-worker/types';
 import {
   ArmorEnergyRules,
-  ArmorSet,
   DesiredStatRange,
   ItemsByBucket,
   ModStatChanges,
@@ -22,9 +21,10 @@ import { runProcess } from './process-wrapper';
 
 interface ProcessState {
   processing: boolean;
+  startTime: number;
   resultStoreId: string;
   result: {
-    sets: ArmorSet[];
+    sets: ProcessArmorSet[];
     /**
      * The mods and rules used to generate the sets above. The sets
      * are guaranteed (modulo bugs in worker) to fit these mods given
@@ -42,7 +42,11 @@ interface ProcessState {
     // What the actual process did to remove some sets.
     processInfo: ProcessStatistics | undefined;
   } | null;
+  totalCombos: number;
+  completedCombos: number;
 }
+
+let lastProgress = 0;
 
 /**
  * Hook to process all the stat groups for LO in a web worker.
@@ -70,12 +74,15 @@ export function useProcess({
   autoStatMods: boolean;
   strictUpgrades: boolean;
 }) {
-  const [{ result, processing }, setState] = useState<ProcessState>({
-    processing: false,
-    resultStoreId: selectedStore.id,
-    result: null,
-  });
-  const getUserItemTag = useSelector(getTagSelector);
+  const [{ result, processing, totalCombos, completedCombos, startTime, resultStoreId }, setState] =
+    useState<ProcessState>({
+      processing: false,
+      startTime: 0,
+      resultStoreId: selectedStore.id,
+      result: null,
+      totalCombos: 0,
+      completedCombos: 0,
+    });
   const autoModDefs = useAutoMods(selectedStore.id);
   const firstTime = result === null;
 
@@ -96,6 +103,19 @@ export function useProcess({
 
   useEffect(() => {
     const doProcess = async () => {
+      const handleProgress = (completed: number, total: number) => {
+        const now = Date.now();
+        // Save some UI recomputation cycles and prevent flickering, by updating the progress display at most every half second
+        if (now - lastProgress > 500 || total === completed) {
+          setState((state) => ({
+            ...state,
+            totalCombos: total,
+            completedCombos: completed,
+          }));
+          lastProgress = now;
+        }
+      };
+
       const processInfo = runProcess({
         autoModDefs,
         filteredItems,
@@ -106,10 +126,10 @@ export function useProcess({
         desiredStatRanges,
         anyExotic,
         autoStatMods,
-        getUserItemTag,
         stopOnFirstSet: false,
         strictUpgrades,
         lastInput: inputsRef.current,
+        onProgress: handleProgress,
       });
       if (processInfo === undefined) {
         infoLog('loadout optimizer', 'Inputs were equal to the previous run, not recalculating');
@@ -123,8 +143,11 @@ export function useProcess({
 
       setState((state) => ({
         processing: true,
+        startTime: Date.now(),
         resultStoreId: selectedStore.id,
         result: selectedStore.id === state.resultStoreId ? state.result : null,
+        totalCombos: 0,
+        completedCombos: 0,
       }));
 
       try {
@@ -168,14 +191,19 @@ export function useProcess({
     autoStatMods,
     lockedModMap,
     setBonuses,
-    getUserItemTag,
     modStatChanges,
     autoModDefs,
     strictUpgrades,
     firstTime,
   ]);
 
-  return { result, processing };
+  return {
+    result: resultStoreId === selectedStore.id ? result : null,
+    processing,
+    startTime,
+    totalCombos,
+    completedCombos,
+  };
 }
 
 /**

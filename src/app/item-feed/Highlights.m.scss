@@ -31,8 +31,7 @@
   flex-direction: row;
   align-items: center;
   gap: 2px;
-
-  > img {
+  :global(.item-img) {
     height: 24px;
     width: 24px;
     margin-left: -1px;
@@ -43,6 +42,22 @@
   /* Filter to tint white PNGs to #f3cf55 */
   filter: brightness(0) saturate(100%) invert(75%) sepia(58%) saturate(442%) hue-rotate(360deg)
     brightness(103%) contrast(91%);
+}
+
+// copy pasted from src/app/item-popup/PlugTooltip.m.scss with spacing tweaks
+.enhancedArrow {
+  display: flex;
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 9px;
+    height: 16px;
+    vertical-align: text-bottom;
+    mask-image: url('images/enhancedArrow.svg');
+    background-color: $enhancedYellow;
+    margin-left: 1px;
+    margin-top: 4px;
+  }
 }
 
 .stats {

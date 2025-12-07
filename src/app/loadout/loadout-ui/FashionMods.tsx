@@ -8,7 +8,7 @@ import { DEFAULT_ORNAMENTS, DEFAULT_SHADER } from 'app/search/d2-known-values';
 import clsx from 'clsx';
 import { PlugCategoryHashes } from 'data/d2/generated-enums';
 import { useSelector } from 'react-redux';
-import styles from './FashionMods.m.scss';
+import * as styles from './FashionMods.m.scss';
 import PlugDef from './PlugDef';
 
 // TODO: Consolidate with the one in FashionDrawer
@@ -43,13 +43,11 @@ export function FashionMods({
       <PlugDef
         className={clsx({ [styles.missingItem]: !canSlotShader })}
         plug={(shaderItem ?? defaultShader) as PluggableInventoryItemDefinition}
-        forClassType={undefined}
       />
       {ornamentItem ? (
         <PlugDef
           className={clsx({ [styles.missingItem]: !canSlotOrnament })}
           plug={ornamentItem as PluggableInventoryItemDefinition}
-          forClassType={undefined}
         />
       ) : (
         <PressTip tooltip={<div>{t('FashionDrawer.NoPreference')}</div>}>

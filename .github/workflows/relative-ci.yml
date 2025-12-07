@@ -2,28 +2,48 @@ name: RelativeCI
 
 on:
   workflow_run:
-    workflows: ["PR Build", "Deploy Beta"]
-    types:
-      - completed
+    workflows: ["PR Build"]
+    types: [completed]
 
 jobs:
-  check-artifact:
+  upload:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check for artifact existence
-        id: check_my_artifact
-        uses: xSAVIKx/artifact-exists-action@v0
-        with:
-          name: 'relative-ci-artifacts'
+    if: github.event.workflow_run.conclusion == 'success'
 
-  ingest:
-    runs-on: ubuntu-latest
-    needs: check-artifact
-    if: ${{ needs.check-artifact.outputs.exists == 'true' }}
     steps:
-      - name: Send bundle stats and build information to RelativeCI
-        uses: relative-ci/agent-action@v3.0.0
+      - name: Check for webpack stats artifact
+        id: check-artifact
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+
+            const artifact = artifacts.data.artifacts.find(a => a.name === 'webpack-stats');
+
+            if (artifact) {
+              console.log(`✅ Found webpack-stats artifact (${artifact.size_in_bytes} bytes)`);
+              core.setOutput('exists', 'true');
+            } else {
+              console.log('ℹ️ No webpack-stats artifact found - skipping upload');
+              core.setOutput('exists', 'false');
+            }
+
+      - name: Download webpack stats
+        if: steps.check-artifact.outputs.exists == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: webpack-stats
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to RelativeCI
+        if: steps.check-artifact.outputs.exists == 'true'
+        uses: relative-ci/agent-action@v2
         with:
           key: ${{ secrets.RELATIVE_CI_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
+          webpackStatsFile: ./webpack-stats.json

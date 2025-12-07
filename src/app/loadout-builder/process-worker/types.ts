@@ -6,9 +6,9 @@ export interface ProcessResult {
   /** The total number of combinations considered. */
   combos: number;
   /** The stat ranges of all sets that matched our filters & mod selection. */
-  statRangesFiltered?: StatRanges;
+  statRangesFiltered: StatRanges;
   /** Statistics about how many sets passed/failed the constraints, for error reporting */
-  processInfo?: ProcessStatistics;
+  processInfo: ProcessStatistics;
 }
 
 /**
@@ -29,8 +29,14 @@ export interface ProcessItem {
   remainingEnergyCapacity: number;
   power: number;
   stats: { [statHash: number]: number };
-  compatibleModSeasons?: string[];
+  /** The activity (raid) mod type that can be slotted on this item, if any. */
+  compatibleActivityMod?: string;
   setBonus?: number;
+  /**
+   * This is a pre-set tuning mod on the item. This hash should be passed along
+   * to the ArmorSet.statMods list.
+   */
+  includedTuningMod?: number;
 }
 
 export type ProcessItemsByBucket = {
@@ -46,13 +52,15 @@ export interface ProcessArmorSet {
   readonly armor: readonly string[];
   /** Which stat mods were added? */
   readonly statMods: number[];
-}
 
-export interface IntermediateProcessArmorSet {
-  /** The overall stats for the loadout as a whole, EXCLUDING auto stat mods. */
-  stats: number[];
-  /** The first (highest-power) valid set from this stat mix. */
-  armor: ProcessItem[];
+  /** Sum of enabled stats values. */
+  readonly enabledStatsTotal: number;
+  /** Sum of all stats including disabled/maxed stats. */
+  readonly statsTotal: number;
+  /** Encoded stat mix as a 48-bit integer. */
+  readonly statMix: number;
+  /** Power level of the armor set. */
+  readonly power: number;
 }
 
 export interface ProcessMod {
@@ -76,7 +84,7 @@ export interface AutoModData {
       minorMod: { hash: number; cost: number };
     };
   };
-  artificeMods: { [key in ArmorStatHashes]?: { hash: number } };
+  artificeMods: { [key in ArmorStatHashes]?: number };
 }
 
 export interface LockedProcessMods {
@@ -116,9 +124,9 @@ export interface ProcessStatistics {
       noExotic: number;
       doubleExotic: number;
       skippedLowTier: number;
+      insufficientSetBonus: number;
     };
     lowerBoundsExceeded: RejectionRate;
-    upperBoundsExceeded: RejectionRate;
     modsStatistics: ModAssignmentStatistics;
   };
 }

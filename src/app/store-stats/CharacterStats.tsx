@@ -25,7 +25,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import helmetIcon from '../../../destiny-icons/armor_types/helmet.svg';
 import xpIcon from '../../images/xpIcon.svg';
-import styles from './CharacterStats.m.scss';
+import * as styles from './CharacterStats.m.scss';
 import StatTooltip from './StatTooltip';
 
 function CharacterPower({ stats }: { stats: PowerStat[] }) {
@@ -54,12 +54,11 @@ function CharacterPower({ stats }: { stats: PowerStat[] }) {
             onClick={stat.onClick}
           >
             {typeof stat.icon === 'string' ? <img src={stat.icon} alt={stat.name} /> : stat.icon}
-            <div>
-              <span className={styles.powerStat}>
-                <FractionalPowerLevel power={stat.value} />
-              </span>
-              {stat.problems?.hasClassified && <sup className={styles.asterisk}>*</sup>}
+
+            <div className={styles.powerStat}>
+              <FractionalPowerLevel power={stat.value} />
             </div>
+            {stat.problems?.hasClassified && <sup className={styles.asterisk}>*</sup>}
           </div>
         </PressTip>
       ))}

@@ -11,15 +11,17 @@ import {
 } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { getSeason } from 'app/inventory/store/season';
+import { knownModPlugCategoryHashes } from 'app/loadout/known-values';
 import { D1BucketHashes } from 'app/search/d1-known-values';
 import {
   ARTIFICE_PERK_HASH,
-  armor2PlugCategoryHashes,
   killTrackerObjectivesByHash,
   killTrackerSocketTypeHash,
+  tuningModToTunedStathash,
 } from 'app/search/d2-known-values';
 import { damageNamesByEnum } from 'app/search/search-filter-values';
-import modSocketMetadata, {
+import {
+  modSocketMetadata,
   ModSocketMetadata,
   modTypeTagByPlugCategoryHash,
 } from 'app/search/specialty-modslots';
@@ -32,7 +34,7 @@ import {
   PlugCategoryHashes,
   StatHashes,
 } from 'data/d2/generated-enums';
-import { filterMap, objectifyArray } from './collections';
+import { objectifyArray } from './collections';
 import { getArmor3TuningSocket } from './socket-utils';
 
 // damage is a mess!
@@ -65,10 +67,10 @@ const specialtyModPlugCategoryHashes = modSocketMetadata.flatMap(
   (modMetadata) => modMetadata.compatiblePlugCategoryHashes,
 );
 
-/** verifies an item is d2 armor and has one or more specialty mod sockets, which are returned */
-const getSpecialtySockets = (item?: DimItem): DimSocket[] | undefined => {
+/** verifies an item is d2 armor and returns its specialty mod socket if any */
+const getSpecialtySocket = (item?: DimItem): DimSocket | undefined => {
   if (item?.bucket.inArmor) {
-    const specialtySockets = item.sockets?.allSockets.filter(
+    return item.sockets?.allSockets.find(
       (socket) =>
         // check plugged -- non-artifice GoA armor still has the socket but nothing in it
         socket.plugged &&
@@ -76,32 +78,20 @@ const getSpecialtySockets = (item?: DimItem): DimSocket[] | undefined => {
         socket.visibleInGame &&
         specialtySocketTypeHashes.includes(socket.socketDefinition.socketTypeHash),
     );
-    if (specialtySockets?.length) {
-      return specialtySockets;
-    }
-  }
-};
-
-/** returns ModMetadatas if the item has one or more specialty mod slots */
-export const getSpecialtySocketMetadatas = (item?: DimItem): ModSocketMetadata[] | undefined => {
-  const metadatas = filterMap(
-    getSpecialtySockets(item) ?? [],
-    (s) => modMetadataBySocketTypeHash[s.socketDefinition.socketTypeHash],
-  );
-  if (metadatas?.length) {
-    return metadatas;
   }
 };
 
 /**
- * combat and legacy slots are boring now. everything has them.
- * this focuses on narrower stuff: raid & nightmare modslots
+ * Returns ModMetadatas if the item has one or more specialty mod slots.
+ *
+ * This no longer includes artifice. Use isArtifice function for that.
  */
-export const getInterestingSocketMetadatas = (item?: DimItem): ModSocketMetadata[] | undefined => {
-  const specialtySockets = getSpecialtySocketMetadatas(item)?.filter((m) => m.slotTag !== 'legacy');
-  if (specialtySockets?.length) {
-    return specialtySockets;
+export const getSpecialtySocketMetadata = (item?: DimItem): ModSocketMetadata | undefined => {
+  const specialtySocket = getSpecialtySocket(item);
+  if (!specialtySocket) {
+    return;
   }
+  return modMetadataBySocketTypeHash[specialtySocket.socketDefinition.socketTypeHash];
 };
 
 /**
@@ -113,7 +103,7 @@ export const getModTypeTagByPlugCategoryHash = (plugCategoryHash: number): strin
 /** feed a **mod** definition into this */
 export const isArmor2Mod = (item: DestinyInventoryItemDefinition): boolean =>
   item.plug !== undefined &&
-  (armor2PlugCategoryHashes.includes(item.plug.plugCategoryHash) ||
+  (knownModPlugCategoryHashes.includes(item.plug.plugCategoryHash) ||
     specialtyModPlugCategoryHashes.includes(item.plug.plugCategoryHash));
 
 /** accepts a DimMasterwork or lack thereof */
@@ -150,17 +140,17 @@ export function itemCanBeEquippedByStoreId(
 ): boolean {
   return Boolean(
     item.equipment &&
-      (item.classified
-        ? // we can't trust the classType of redacted items! they're all marked titan.
-          // let's assume classified weapons are all-class
-          item.bucket.inWeapons ||
-          // if it's equipped by this store, it's obviously equippable to this store!
-          (item.owner === storeId && item.equipped)
-        : // For the right class
-          isClassCompatible(item.classType, storeClassType)) &&
-      // can be moved or is already here
-      (!item.notransfer || item.owner === storeId) &&
-      (allowPostmaster || !item.location.inPostmaster),
+    (item.classified
+      ? // we can't trust the classType of redacted items! they're all marked titan.
+        // let's assume classified weapons are all-class
+        item.bucket.inWeapons ||
+        // if it's equipped by this store, it's obviously equippable to this store!
+        (item.owner === storeId && item.equipped)
+      : // For the right class
+        isClassCompatible(item.classType, storeClassType)) &&
+    // can be moved or is already here
+    (!item.notransfer || item.owner === storeId) &&
+    (allowPostmaster || !item.location.inPostmaster),
   );
 }
 
@@ -244,7 +234,11 @@ export function getItemYear(
 ) {
   if (('destinyVersion' in item && item.destinyVersion === 2) || 'displayProperties' in item) {
     const season = getSeason(item, defs);
-    return season ? Math.floor(season / 4) + 1 : 0;
+    if (season < 27) {
+      return season ? Math.floor(season / 4) + 1 : 0;
+    } else {
+      return season ? Math.floor((season - 27) / 2) + 8 : 0;
+    }
   } else if (isD1Item(item)) {
     if (!item.sourceHashes) {
       return 1;
@@ -310,16 +304,16 @@ export function isArtificeSocket(socket: DimSocket) {
   // exotic armor has the artifice slot all the time, and it's usable when it's reported as visible
   return Boolean(
     socket.visibleInGame &&
-      socket.plugged &&
-      // in a better world, you'd only need to check this, because there's a "empty mod slot" item specifically for artifice slots.
-      (socket.plugged.plugDef.plug.plugCategoryHash === PlugCategoryHashes.EnhancementsArtifice ||
-        // but some of those have the *generic* "empty mod slot" item plugged in, so we fall back to keeping an eye out for the intrinsic
-        socket.plugged.plugDef.hash === ARTIFICE_PERK_HASH),
+    socket.plugged &&
+    // in a better world, you'd only need to check this, because there's a "empty mod slot" item specifically for artifice slots.
+    (socket.plugged.plugDef.plug.plugCategoryHash === PlugCategoryHashes.EnhancementsArtifice ||
+      // but some of those have the *generic* "empty mod slot" item plugged in, so we fall back to keeping an eye out for the intrinsic
+      socket.plugged.plugDef.hash === ARTIFICE_PERK_HASH),
   );
 }
 
 /**
- * Is this the new-style armor masterwork in Edge of Fate that grants +1 to the three lower stats per tier?
+ * Does this armor have the new-style armor masterwork in Edge of Fate, that grants +1 per MW tier, to the three lower stats?
  */
 // TODO: May want to switch this to isLegacyArmorMasterwork eventually
 export function isArmor3(item: DimItem) {
@@ -429,14 +423,10 @@ export function getArmor3StatFocus(item: DimItem): StatHashes[] {
  * Returns the stat hash of the item's tunable stat.
  * This stat can be upgraded at the cost of another stat.
  *
- * This heuristic relies on the following assumptions:
- * - Every armor with tuning has Balanced Tuning (3122197216) which provides +1 to several stats.
- * - Armor with e.g. a melee tuning, has several available plugs which raise Melee stat by 5 (and none which raise other stats by that much)
+ * Every armor with tuning has Balanced Tuning (3122197216) which provides +1 to several stats,
+ * so this seeks an available plug item that's one of the +5/-5 mods.
  */
-export function getArmor3TuningStat(
-  item: DimItem,
-  defs: D2ManifestDefinitions,
-): number | undefined {
+export function getArmor3TuningStat(item: DimItem): StatHashes | undefined {
   const reusablePlugItems = item.bucket.inArmor
     ? getArmor3TuningSocket(item)?.reusablePlugItems
     : undefined;
@@ -444,12 +434,9 @@ export function getArmor3TuningStat(
     return;
   }
 
-  for (const reusablePlug of reusablePlugItems) {
-    const positiveHash = defs.InventoryItem.get(reusablePlug.plugItemHash).investmentStats.find(
-      (s) => s.value > 1,
-    );
-    if (positiveHash) {
-      return positiveHash.statTypeHash;
+  for (const { plugItemHash } of reusablePlugItems) {
+    if (plugItemHash in tuningModToTunedStathash) {
+      return tuningModToTunedStathash[plugItemHash];
     }
   }
   return undefined;

@@ -18,7 +18,7 @@ import { Reorder, useDragControls } from 'motion/react';
 import { Dispatch, useEffect, useId, useRef, useState } from 'react';
 import { LoadoutBuilderAction } from '../loadout-builder-reducer';
 import { ArmorStatHashes, MinMaxStat, ResolvedStatConstraint, StatRanges } from '../types';
-import styles from './TierlessStatConstraintEditor.m.scss';
+import * as styles from './TierlessStatConstraintEditor.m.scss';
 
 /**
  * A selector that allows for choosing minimum and maximum stat ranges, plus
@@ -423,8 +423,8 @@ function StatBar({
         <div
           className={clsx(styles.statBarFill, { [styles.processing]: processing })}
           style={{
-            left: percent(range.minStat / MAX_STAT),
-            width: percent((range.maxStat - range.minStat) / MAX_STAT),
+            left: percent(Math.max(0, range.minStat) / MAX_STAT),
+            width: percent(Math.min(range.maxStat - range.minStat, MAX_STAT) / MAX_STAT),
           }}
         />
       )}

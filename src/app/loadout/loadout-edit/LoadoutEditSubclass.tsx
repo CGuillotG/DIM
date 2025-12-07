@@ -16,7 +16,7 @@ import { useSelector } from 'react-redux';
 import { getSubclassPlugs } from '../loadout-item-utils';
 import PlugDef from '../loadout-ui/PlugDef';
 import { createGetModRenderKey } from '../mod-utils';
-import styles from './LoadoutEditSubclass.m.scss';
+import * as styles from './LoadoutEditSubclass.m.scss';
 import { useEquipDropTargets } from './useEquipDropTargets';
 
 /** The subclass section used in the loadouts page and drawer */
@@ -123,11 +123,7 @@ export default function LoadoutEditSubclass({
             {plugs?.map(
               (plug) =>
                 plug.socketCategoryHash !== SocketCategoryHashes.Super && (
-                  <PlugDef
-                    key={getModRenderKey(plug.plug)}
-                    plug={plug.plug}
-                    forClassType={subclass?.item.classType}
-                  />
+                  <PlugDef key={getModRenderKey(plug.plug)} plug={plug.plug} item={subclass.item} />
                 ),
             )}
           </div>
