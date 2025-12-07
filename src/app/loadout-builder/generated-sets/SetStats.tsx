@@ -1,3 +1,4 @@
+import { AlertIcon } from 'app/dim-ui/AlertIcon';
 import BungieImage from 'app/dim-ui/BungieImage';
 import { PressTip } from 'app/dim-ui/PressTip';
 import { t } from 'app/i18next-t';
@@ -17,7 +18,7 @@ import {
   ModStatChanges,
   ResolvedStatConstraint,
 } from '../types';
-import styles from './SetStats.m.scss';
+import * as styles from './SetStats.m.scss';
 import { sumEnabledStats } from './utils';
 
 /**
@@ -34,6 +35,7 @@ export function TierlessSetStats({
   existingLoadoutName,
   equippedHashes,
   setBonusStatus,
+  fotlWarning,
 }: {
   stats: ArmorStats;
   getStatsBreakdown: () => ModStatChanges;
@@ -44,6 +46,7 @@ export function TierlessSetStats({
   existingLoadoutName?: string;
   equippedHashes: Set<number>;
   setBonusStatus: ActiveSetBonusInfo;
+  fotlWarning?: boolean;
 }) {
   const defs = useD2Definitions()!;
   const totalStats = sum(Object.values(stats));
@@ -92,6 +95,11 @@ export function TierlessSetStats({
         {maxPower}
       </span>
       <SetBonusesStatus setBonusStatus={setBonusStatus} />
+      {fotlWarning && (
+        <PressTip tooltip={t('LoadoutBuilder.FOTLWildcardWarning')}>
+          <AlertIcon className={styles.statBarWarningIcon} />
+        </PressTip>
+      )}
       {existingLoadoutName ? (
         <span className={styles.existingLoadout}>
           {t('LoadoutBuilder.ExistingLoadout')}:{' '}

@@ -34,7 +34,7 @@ import Checkbox from './Checkbox';
 import { CustomStatsSettings } from './CustomStatsSettings';
 import LanguageSetting from './LanguageSetting';
 import Select, { mapToOptions } from './Select';
-import styles from './SettingsPage.m.scss';
+import * as styles from './SettingsPage.m.scss';
 import SortOrderEditor, { SortProperty } from './SortOrderEditor';
 import Spreadsheets from './Spreadsheets';
 import { TroubleshootingSettings } from './Troubleshooting';
@@ -184,6 +184,8 @@ export default function SettingsPage() {
     deepsight: t('Settings.SortByDeepsight'),
     featured: t('Settings.SortByFeatured'),
     tier: t('Settings.SortByTier'),
+    armorArchetype: t('Settings.ArmorArchetypeModslot'),
+    weaponFrame: t('Settings.WeaponFrame'),
   };
 
   const vaultWeaponGroupingOptions = mapToOptions({
@@ -204,6 +206,10 @@ export default function SettingsPage() {
   const charColOptions = range(2, 6).map((num) => ({
     value: num,
     name: t('Settings.ColumnSize', { num }),
+  }));
+  const numberOfSpacesOptions = range(1, 10).map((count) => ({
+    value: count,
+    name: t('Settings.SpacesSize', { count }),
   }));
   const vaultColOptions = range(5, 21).map((num) => ({
     value: num,
@@ -370,6 +376,15 @@ export default function SettingsPage() {
             </div>
 
             <div className={styles.setting}>
+              <Checkbox
+                label={t('Settings.VaultUnder')}
+                name="vaultUnder"
+                value={settings.vaultUnder}
+                onChange={onCheckChange}
+              />
+            </div>
+
+            <div className={styles.setting}>
               <label htmlFor="itemSort">{t('Settings.SetSort')}</label>
 
               <SortOrderEditor order={itemSortCustom} onSortOrderChanged={itemSortOrderChanged} />
@@ -416,6 +431,15 @@ export default function SettingsPage() {
                 onChange={onBadgePostmasterChanged}
               />
               <div className={styles.fineprint}>{t('Settings.BadgePostmasterExplanation')}</div>
+            </div>
+            <div className={styles.setting}>
+              <Select
+                label={t('Settings.InventoryNumberOfSpacesToClear')}
+                name="inventoryClearSpaces"
+                value={settings.inventoryClearSpaces}
+                options={numberOfSpacesOptions}
+                onChange={onChangeNumeric}
+              />
             </div>
           </section>
 

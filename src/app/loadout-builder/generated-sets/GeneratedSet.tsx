@@ -4,6 +4,7 @@ import { DimItem, PluggableInventoryItemDefinition } from 'app/inventory/item-ty
 import { DimStore, statSourceOrder } from 'app/inventory/store-types';
 import { getSetBonusStatus } from 'app/item-popup/SetBonus';
 import { calculateAssumedMasterworkStats } from 'app/loadout-drawer/loadout-utils';
+import { fotlWildcardHashes } from 'app/loadout/known-values';
 import { Loadout } from 'app/loadout/loadout-types';
 import { fitMostMods } from 'app/loadout/mod-assignment-utils';
 import { getTotalModStatChanges } from 'app/loadout/stats';
@@ -26,7 +27,7 @@ import {
   PinnedItems,
 } from '../types';
 import { getPower } from '../utils';
-import styles from './GeneratedSet.m.scss';
+import * as styles from './GeneratedSet.m.scss';
 import GeneratedSetButtons from './GeneratedSetButtons';
 import GeneratedSetItem from './GeneratedSetItem';
 import { TierlessSetStats } from './SetStats';
@@ -172,6 +173,7 @@ export default memo(function GeneratedSet({
         existingLoadoutName={overlappingLoadout?.name}
         equippedHashes={equippedHashes}
         setBonusStatus={setBonusStatus}
+        fotlWarning={set.armor.some((i) => fotlWildcardHashes.has(i.hash))}
       />
       <div className={styles.build}>
         <div className={styles.items}>

@@ -18,7 +18,7 @@ import {
 import holofoilAnim from 'images/holofoil-anim.apng';
 import pursuitComplete from 'images/pursuitComplete.svg';
 import { DimItem } from './item-types';
-import styles from './ItemIcon.m.scss';
+import * as styles from './ItemIcon.m.scss';
 import { isPluggableItem } from './store/sockets';
 
 const itemTierStyles: Record<ItemRarityName, string> = {
@@ -88,7 +88,8 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
   const backgrounds = compact([
     // The ornament knot background
     (item.ornamentIconDef ||
-      (item.vendor && item.itemCategoryHashes.includes(ItemCategoryHashes.Mods_Ornament))) &&
+      item.itemCategoryHashes.includes(ItemCategoryHashes.Mods_Ornament) ||
+      item.itemCategoryHashes.includes(ItemCategoryHashes.WeaponModsOrnaments)) &&
       (item.rarity === 'Exotic'
         ? itemConstants?.universalOrnamentExoticBackgroundOverlayPath
         : item.rarity === 'Legendary'
@@ -143,6 +144,10 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
   const seasonAndFlags = compact([
     // Featured flags
     item.featured ? itemConstants?.featuredItemFlagPath : undefined,
+    // Tier pips
+    item.tier > 0 &&
+      !item.isEngram &&
+      itemConstants?.gearTierOverlayImagePaths[Math.min(item.tier - 1, 4)],
   ]);
 
   // Tier pips - separate so we can apply filters only to them
@@ -280,7 +285,8 @@ export function DefItemIcon({
 
   const backgrounds = compact([
     // The ornament knot background
-    itemDef.itemCategoryHashes?.includes(ItemCategoryHashes.Mods_Ornament) &&
+    (itemDef.itemCategoryHashes?.includes(ItemCategoryHashes.Mods_Ornament) ||
+      itemDef.itemCategoryHashes?.includes(ItemCategoryHashes.WeaponModsOrnaments)) &&
       (itemDef.inventory?.tierType === TierType.Exotic
         ? itemConstants.universalOrnamentExoticBackgroundOverlayPath
         : itemDef.inventory?.tierType === TierType.Superior

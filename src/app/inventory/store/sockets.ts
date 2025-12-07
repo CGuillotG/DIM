@@ -1,6 +1,7 @@
 import { getCraftingTemplate } from 'app/armory/crafting-utils';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import {
+  DEFAULT_SHADER,
   GhostActivitySocketTypeHashes,
   weaponMasterworkY2SocketTypeHash,
 } from 'app/search/d2-known-values';
@@ -27,7 +28,6 @@ import {
   DestinySocketTypeDefinition,
   SocketPlugSources,
 } from 'bungie-api-ts/destiny2';
-import deprecatedMods from 'data/d2/deprecated-mods.json';
 import { emptyPlugHashes } from 'data/d2/empty-plug-hashes';
 import {
   BucketHashes,
@@ -239,8 +239,7 @@ function isUncraftableEnhancedPerk(
 ) {
   return (
     isEnhancedPerk(built.plugDef) &&
-    craftingRequirements &&
-    craftingRequirements.unlockRequirements.length === 0 &&
+    craftingRequirements?.unlockRequirements.length === 0 &&
     craftingRequirements.materialRequirementHashes.length === 0
   );
 }
@@ -800,13 +799,9 @@ function buildCachedDimPlugSet(defs: D2ManifestDefinitions, plugSetHash: number)
   const defPlugSet = defs.PlugSet.get(plugSetHash);
   let craftingData: DimPlugSet['craftingData'];
   for (const plugEntry of defPlugSet.reusablePlugItems) {
-    // Deprecated mods should not actually be in any PlugSets, but here we are
-    // https://github.com/Bungie-net/api/issues/1801
-    if (!deprecatedMods.includes(plugEntry.plugItemHash)) {
-      const plug = buildDefinedPlug(defs, plugEntry.plugItemHash, plugEntry.currentlyCanRoll);
-      if (plug) {
-        plugs.push(plug);
-      }
+    const plug = buildDefinedPlug(defs, plugEntry.plugItemHash, plugEntry.currentlyCanRoll);
+    if (plug) {
+      plugs.push(plug);
     }
     if (
       plugEntry.craftingRequirements &&
@@ -838,6 +833,10 @@ function buildCachedDimPlugSet(defs: D2ManifestDefinitions, plugSetHash: number)
  * versions of that plug in the plugSet cannot currently roll.
  */
 function plugCannotCurrentlyRoll(plugs: DimPlug[], plugHash: number) {
+  // The default shader plug reports that it cannot roll, but it can...
+  if (plugHash === DEFAULT_SHADER) {
+    return false;
+  }
   let matchingPlugs = false;
   for (const p of plugs) {
     if (p.plugDef.hash === plugHash) {
