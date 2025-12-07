@@ -152,7 +152,9 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
 
   // Tier pips - separate so we can apply filters only to them
   const tierPips =
-    item.tier > 0 ? itemConstants?.gearTierOverlayImagePaths[item.tier - 1] : undefined;
+    item.tier > 0 && !item.isEngram
+      ? itemConstants?.gearTierOverlayImagePaths[item.tier - 1]
+      : undefined;
 
   if (craftedOverlays.length === 0 && seasonBanner) {
     seasonAndFlags.push(seasonBanner);
