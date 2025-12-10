@@ -170,23 +170,6 @@
     brightness(103%) contrast(91%);
 }
 
-// copy pasted from src/app/item-popup/PlugTooltip.m.scss with spacing tweaks
-.enhancedArrow {
-  width: 25px;
-  display: flex;
-  &::after {
-    content: '';
-    display: inline-block;
-    width: 6px;
-    height: 11px;
-    vertical-align: text-bottom;
-    mask-image: url('images/enhancedArrow.svg');
-    background-color: $enhancedYellow;
-    margin-left: 1px;
-    margin-top: 3px;
-  }
-}
-
 .perksGrid {
   --mod-size: calc(#{dim-item-px(28)});
   --perk-size: calc(#{dim-item-px(28)});
