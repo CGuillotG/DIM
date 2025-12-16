@@ -260,6 +260,13 @@ const D2Sources: {
     ],
     searchString: [],
   },
+  conquest: {
+    itemHashes: [],
+    sourceHashes: [
+      1331532890, // Source: Seasonal Conquest Triumph "Ultimate Victory"
+    ],
+    searchString: [],
+  },
   contact: {
     itemHashes: [],
     sourceHashes: [
@@ -800,6 +807,7 @@ const D2Sources: {
       1745960977, // Source: "Pit of Heresy" Dungeon
       2463956052, // Source: Vesper's Host
       2607970476, // Source: Sundered Doctrine
+      3247513834, // Source: Equilibrium
       3288974535, // Source: "Ghosts of the Deep" Dungeon
     ],
     searchString: [],
@@ -858,6 +866,13 @@ const D2Sources: {
     itemHashes: [],
     sourceHashes: [
       4137108180, // Source: Escalation Protocol on Mars.
+    ],
+    searchString: [],
+  },
+  equilibrium: {
+    itemHashes: [],
+    sourceHashes: [
+      3247513834, // Source: Equilibrium
     ],
     searchString: [],
   },
@@ -973,6 +988,7 @@ const D2Sources: {
       2296534980, // Source: Exotic Mission Encore
       2745272818, // Source: "Presage" Exotic Quest
       2856954949, // Source: "Let Loose Thy Talons" Exotic Quest
+      3237053501, // Source: Heliostat
       3597879858, // Source: "Presage" Exotic Quest
     ],
     searchString: [],
@@ -1146,6 +1162,13 @@ const D2Sources: {
       1283862526, // Source: Season of the Haunted Nightfall Grandmaster
       2273761598, // Source: Season of the Haunted Activities
       2676881949, // Source: Season of the Haunted
+    ],
+    searchString: [],
+  },
+  heliostat: {
+    itemHashes: [],
+    sourceHashes: [
+      3237053501, // Source: Heliostat
     ],
     searchString: [],
   },
@@ -1736,6 +1759,20 @@ const D2Sources: {
     ],
     searchString: [],
   },
+  reclaim: {
+    itemHashes: [],
+    sourceHashes: [
+      2929839827, // Source: Reclaim
+    ],
+    searchString: [],
+  },
+  renegades: {
+    itemHashes: [],
+    sourceHashes: [
+      178383754, // Source: Renegades
+    ],
+    searchString: [],
+  },
   revenant: {
     itemHashes: [],
     sourceHashes: [
@@ -2260,7 +2297,6 @@ const D2Sources: {
       3390015730, // Source: Trials of Osiris Challenges
       3471208558, // Source: Trials of Osiris Wins
       3543690049, // Source: Complete a flawless Trials ticket.
-      3564069447, // Source: Flawless Win with a "Flight of the Pigeon" Medal
     ],
     searchString: [],
   },
