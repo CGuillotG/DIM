@@ -164,8 +164,25 @@
   cursor: pointer;
 }
 
+// copy pasted from src/app/item-popup/PlugTooltip.m.scss with spacing tweaks
+.enhancedArrow {
+  width: 24px;
+  display: flex;
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 5px;
+    height: 9px;
+    vertical-align: text-bottom;
+    mask-image: url('images/enhancedArrow.svg');
+    background-color: $enhancedYellow;
+    margin-left: 1px;
+    margin-top: 4px;
+  }
+}
+
 .enhancedIcon {
-  /* Filter to tint white PNGs to #f3cf55 */
+  /* Filter to tint white PNGs to #f3cf55 ($enhancedYellow) */
   filter: brightness(0) saturate(100%) invert(75%) sepia(58%) saturate(442%) hue-rotate(360deg)
     brightness(103%) contrast(91%);
 }

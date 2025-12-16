@@ -2,6 +2,7 @@
 // Please do not change this file!
 interface CssExports {
   'armorStats': string;
+  'enhancedArrow': string;
   'enhancedIcon': string;
   'multiPerk': string;
   'perk': string;
