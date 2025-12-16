@@ -1323,7 +1323,7 @@ function PerksCell({
                     className={clsx({ [styles.enhancedIcon]: isEnhancedPerk(p.plugDef) })}
                   />
                 </div>
-                <span>{p.plugDef.displayProperties.name}</span>
+                {p.plugDef.displayProperties.name}
               </div>
             </PressTip>
           ))}

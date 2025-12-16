@@ -37,7 +37,6 @@
     margin-left: -1px;
   }
 }
-
 // copy pasted from src/app/item-popup/PlugTooltip.m.scss with spacing tweaks
 .enhancedArrow {
   display: flex;
@@ -49,7 +48,6 @@
     vertical-align: text-bottom;
     mask-image: url('images/enhancedArrow.svg');
     background-color: $enhancedYellow;
-    // margin-left: -1px;
     margin-right: 1px;
     margin-top: 5px;
   }
