@@ -1,5 +1,12 @@
 ## Next
 
+## 8.103.0 <span class="changelog-date">(2025-12-14)</span>
+
+* Added heat-related weapon stats.
+* Improved mobile view for loadouts.
+
+## 8.102.0 <span class="changelog-date">(2025-12-07)</span>
+
 * DIM should load faster even when it is having trouble loading DIM API data.
 * Festival masks will now show up in the Organizer.
 * Tiered Engrams in postmaster will now match `is:engrams`
