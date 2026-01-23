@@ -1,5 +1,27 @@
 ## Next
 
+* Fix Loadout Optimizer being unable to plan Artifice mods for Exotic armor with a locked Artifice mod slot.
+
+## 8.108.0 <span class="changelog-date">(2026-01-18)</span>
+
+## 8.107.0 <span class="changelog-date">(2026-01-11)</span>
+
+## 8.106.0 <span class="changelog-date">(2026-01-04)</span>
+
+* Add setting to toggle display of ornaments and view ornaments when hovering over items
+* Limit ornament icon swapping to armor only
+
+## 8.105.0 <span class="changelog-date">(2025-12-28)</span>
+
+* Fix `exactperk/perkname` matching against a perk's type, instead of just its name.
+* Added the Synthweave bounty counter to Ada-1's bounty descriptions
+
+## 8.104.0 <span class="changelog-date">(2025-12-21)</span>
+
+* Fix the masterwork socket on crafted and enhanced weapons incorrectly showing a masterwork tier number
+
+## 8.103.1 <span class="changelog-date">(2025-12-16)</span>
+
 ## 8.103.0 <span class="changelog-date">(2025-12-14)</span>
 
 * Added heat-related weapon stats.

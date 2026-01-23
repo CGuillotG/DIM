@@ -113,9 +113,13 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
       : undefined;
 
   // The actual item icon. Use the ornamented version where available.
-  let foreground = (item.ornamentIconDef ?? item.iconDef)?.foreground ?? item.icon;
+  let foreground = (item.iconDef?.foreground ?? item.icon) || '';
+  let altIcon = '';
+  if (item.ornamentIconDef) {
+    altIcon = item.ornamentIconDef.foreground;
+  }
 
-  if (!animatedBackground) {
+  if (!animatedBackground && !altIcon) {
     backgrounds.unshift(foreground);
     foreground = '';
   }
@@ -175,10 +179,24 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
           {animatedBackground && (
             <img src={animatedBackground} className={styles.animatedBackground} />
           )}
+          {foreground && (
+            <div
+              style={bungieBackgroundStyle(foreground)}
+              className={clsx({
+                [styles.hasAltIcon]: Boolean(altIcon),
+                [styles.isArmor]: item.bucket.inArmor,
+              })}
+            />
+          )}
+          {altIcon && (
+            <div
+              style={bungieBackgroundStyle(altIcon)}
+              className={clsx({ [styles.altIcon]: true, [styles.isArmor]: item.bucket.inArmor })}
+            />
+          )}
           {masterworkGlow && (
             <div style={bungieBackgroundStyle(masterworkGlow)} className={styles.adjustOpacity} />
           )}
-          {foreground && <div style={bungieBackgroundStyle(foreground)} />}
           {seasonBanner && (
             <div style={bungieBackgroundStyle(seasonBanner)} className={styles.shiftedLayer} />
           )}
