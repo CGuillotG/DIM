@@ -102,8 +102,6 @@ function SeasonTierBanner({ item }: { item: DimItem }) {
   const backgrounds = compact([
     // Featured flags
     item.featured ? itemConstants.featuredItemFlagPath : undefined,
-    // Tier pips
-    item.tier > 0 && itemConstants.gearTierOverlayImagePaths[Math.min(item.tier - 1, 4)],
     // Black stripe
     item.iconDef.secondaryBackground && itemConstants.watermarkDropShadowPath,
   ]);

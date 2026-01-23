@@ -144,10 +144,6 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
   const seasonAndFlags = compact([
     // Featured flags
     item.featured ? itemConstants?.featuredItemFlagPath : undefined,
-    // Tier pips
-    item.tier > 0 &&
-      !item.isEngram &&
-      itemConstants?.gearTierOverlayImagePaths[Math.min(item.tier - 1, 4)],
   ]);
 
   // Tier pips - separate so we can apply filters only to them
