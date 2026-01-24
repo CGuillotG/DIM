@@ -215,12 +215,12 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
                   [styles.tier5Pips]: item.tier === 5,
                 })}
               />
-              {item.tier >= 4 && (
+              {/* {item.tier >= 4 && (
                 <div
                   style={bungieBackgroundStyle(tierPips)}
                   className={clsx(styles.shiftedLayer, styles.tierPipOverlay)}
                 />
-              )}
+              )} */}
             </>
           )}
           {seasonIcon && (
