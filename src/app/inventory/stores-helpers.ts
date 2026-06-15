@@ -47,18 +47,6 @@ export const findItemsByBucket = (store: DimStore, bucketId: number): DimItem[] 
   itemsByBucket(store)[bucketId] ?? emptyArray();
 
 /**
- * Get the bonus power from the Seasonal Artifact.
- * Destiny 2 is not currently using the artifact to provide power.
- * Bungie.net is currently reporting 1 instead of 0 thus this fix.
- * Leaving this code in place for any future power modifier would be nice.
- */
-export function getArtifactBonus(_store: DimStore) {
-  // const artifact = findItemsByBucket(store, BucketHashes.SeasonalArtifact).find((i) => i.equipped);
-  // return artifact?.primaryStat?.value || 0;
-  return 0;
-}
-
-/**
  * Get the total amount of this item in the store, across all stacks,
  * excluding stuff in the postmaster.
  */
@@ -108,7 +96,7 @@ export function potentialSpaceLeftForItem(
 ): SpaceLeft {
   // Calculate how many full stacks (slots, where multiple items in a stack
   // count as 1) are occupied in the bucket this item would go into.
-  let occupiedStacks = 0;
+  let occupiedStacks: number;
   if (store.isVault) {
     if (!item.bucket.vaultBucket) {
       return { guaranteed: 0, couldMakeSpace: false };

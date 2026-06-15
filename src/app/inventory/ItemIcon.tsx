@@ -145,10 +145,7 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
     item.crafted ? itemConstants?.craftedBackgroundPath : undefined,
   ]);
   // These are aligned with the border, not the image
-  const seasonAndFlags = compact([
-    // Featured flags
-    item.featured ? itemConstants?.featuredItemFlagPath : undefined,
-  ]);
+  const seasonBanners: string[] = [];
 
   // Tier pips - separate so we can apply filters only to them
   const tierPips =
@@ -157,7 +154,7 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
       : undefined;
 
   if (craftedOverlays.length === 0 && seasonBanner) {
-    seasonAndFlags.push(seasonBanner);
+    seasonBanners.push(seasonBanner);
     seasonBanner = '';
   }
 
@@ -203,8 +200,8 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
           {craftedOverlays.length > 0 && (
             <div style={bungieBackgroundStyles(craftedOverlays)} className={styles.craftedLayer} />
           )}
-          {seasonAndFlags.length > 0 && (
-            <div style={bungieBackgroundStyles(seasonAndFlags)} className={styles.shiftedLayer} />
+          {seasonBanners.length > 0 && (
+            <div style={bungieBackgroundStyles(seasonBanners)} className={styles.shiftedLayer} />
           )}
           {tierPips && (
             <>
@@ -280,7 +277,9 @@ export function DefItemIcon({
     itemDef.plug && strandWrongColorPlugCategoryHashes.includes(itemDef.plug.plugCategoryHash);
 
   const isMasterworkMod =
-    isPluggableItem(itemDef) && itemDef.plug.plugCategoryIdentifier.includes('.masterworks.stat.');
+    isPluggableItem(itemDef) &&
+    (itemDef.plug.plugCategoryIdentifier.includes('.masterworks.stat.') ||
+      itemDef.itemCategoryHashes?.includes(ItemCategoryHashes.MasterworksMods));
 
   const itemImageStyles = clsx(
     'item-img',

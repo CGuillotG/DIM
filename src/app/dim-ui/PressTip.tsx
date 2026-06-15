@@ -19,7 +19,7 @@ import { usePopper } from './usePopper';
  * but other elements (like Sheet) can use this to override the attachment point
  * for PressTips below them in the tree.
  */
-// eslint-disable-next-line @eslint-react/naming-convention/context-name
+// eslint-disable-next-line @eslint-react/naming-convention-context-name
 export const PressTipRoot = createContext<RefObject<HTMLElement | null>>({
   current: null,
 });
@@ -319,8 +319,16 @@ export function PressTip(props: Props) {
 
   // Fires on both pointerenter and pointerdown - does double duty for handling both hover tips and press tips
   const hover = useCallback((e: React.PointerEvent) => {
-    if (e.type === 'pointerenter' && e.buttons !== 0) {
+    if (
+      e.type === 'pointerenter' &&
       // Ignore hover events when the mouse is down
+      (e.buttons !== 0 ||
+        // Safari on iOS 26+ fires pointerenter with type 'touch' sometimes
+        // when showing elements. This causes PressTips to be shown initially
+        // and get stuck open, and pointereenter doesn't make much sense for
+        // touch anyway.
+        e.pointerType === 'touch')
+    ) {
       return;
     }
     e.preventDefault();

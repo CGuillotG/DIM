@@ -179,7 +179,6 @@ export function makeFakeItem(
  * @param defs the manifest definitions
  * @param buckets the bucket definitions
  * @param previousItems a set of item IDs representing the previous store's items
- * @param newItems a set of item IDs representing the previous list of new items
  * @param item "raw" item from the Destiny API
  * @param owner the ID of the owning store.
  */
@@ -367,7 +366,6 @@ function makeItem(
     missingSockets: false,
     energy: null,
     pursuit: null,
-    featured: false,
     tier: 0,
     adept: false,
     holofoil: false,
@@ -584,22 +582,6 @@ function buildTalentGrid(
     const activatedAtGridLevel = talentNodeSelected.activationRequirement.gridLevel;
     const xpRequired = xpToReachLevel(activatedAtGridLevel) - startProgressionBarAtProgress;
     const xp = clamp(totalXP - startProgressionBarAtProgress, 0, xpRequired);
-
-    // Build a perk string for the DTR link. See https://github.com/DestinyItemManager/DIM/issues/934
-    let dtrHash: string | null = null;
-    if (node.isActivated || talentNodeGroup.isRandom) {
-      dtrHash = node.nodeHash.toString(16);
-      if (dtrHash.length > 1) {
-        dtrHash += '.';
-      }
-
-      if (talentNodeGroup.isRandom) {
-        dtrHash += node.stepIndex.toString(16);
-        if (node.isActivated) {
-          dtrHash += 'o';
-        }
-      }
-    }
 
     // hacky way to determine if the node is a weapon ornament
     let ornamentComplete = false;

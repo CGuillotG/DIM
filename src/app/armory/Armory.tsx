@@ -11,7 +11,7 @@ import { t } from 'app/i18next-t';
 import ItemIcon, { DefItemIcon } from 'app/inventory/ItemIcon';
 import { DimItem } from 'app/inventory/item-types';
 import { allItemsSelector, createItemContextSelector } from 'app/inventory/selectors';
-import { makeFakeItem } from 'app/inventory/store/d2-item-factory';
+import { getQuestLineInfo, makeFakeItem } from 'app/inventory/store/d2-item-factory';
 import {
   SocketOverrides,
   applySocketOverrides,
@@ -19,7 +19,6 @@ import {
 } from 'app/inventory/store/override-sockets';
 import { getEvent, getSeason } from 'app/inventory/store/season';
 import { AmmoIcon } from 'app/item-popup/AmmoIcon';
-import BreakerType from 'app/item-popup/BreakerType';
 import EmblemPreview from 'app/item-popup/EmblemPreview';
 import ItemSockets from 'app/item-popup/ItemSockets';
 import ItemStats from 'app/item-popup/ItemStats';
@@ -125,7 +124,6 @@ export default function Armory({
         <div className={styles.headerContent}>
           <div className={styles.subtitle}>
             <ElementIcon element={item.element} className={styles.element} />
-            <BreakerType item={item} />
             {item.destinyVersion === 2 && item.ammoType > 0 && <AmmoIcon type={item.ammoType} />}
             <div>{itemTypeName(item)}</div>
             {item.pursuit?.questLine && (
@@ -236,6 +234,7 @@ export default function Armory({
           <div className={styles.list}>
             {alternates.map((alternate) => {
               const altSeasonNum = getSeason(alternate);
+              const questLine = getQuestLineInfo(alternate);
               return (
                 <div key={alternate.hash} className={styles.alternate}>
                   <button
@@ -247,6 +246,14 @@ export default function Armory({
                   </button>
                   <div>
                     <b>{alternate.displayProperties.name}</b>
+                    {questLine && (
+                      <div>
+                        {t('MovePopup.Subtitle.QuestProgress', {
+                          questStepNum: questLine.questStepNum,
+                          questStepsTotal: questLine.questStepsTotal ?? '?',
+                        })}
+                      </div>
+                    )}
                     {altSeasonNum >= 0 && (
                       <SeasonInfo defs={defs} item={alternate} seasonNum={altSeasonNum} />
                     )}
@@ -324,6 +331,7 @@ function getAlternateItems(
   alternates.sort(
     chainComparator(
       reverseComparator(compareBy((i) => getSeason(i, defs) ?? 0)),
+      compareBy((i) => getQuestLineInfo(i)?.questStepNum ?? 0),
       compareBy((i) => i.displayProperties.name),
     ),
   );

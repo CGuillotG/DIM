@@ -58,7 +58,6 @@ export function useLoadoutFilterPills(
     extra?: React.ReactNode;
   } = {},
 ): [filteredLoadouts: Loadout[], filterPillsElement: React.ReactNode, hasSelectedFilters: boolean] {
-  // eslint-disable-next-line @eslint-react/prefer-use-state-lazy-initialization
   const [selectedFilters, setSelectedFilters] = useState<Option<FilterPillType>[]>(emptyArray());
   const defs = useD2Definitions();
   const analysisSummary = useSummaryLoadoutsAnalysis(
@@ -121,7 +120,7 @@ export function useLoadoutFilterPills(
   if (analysisSummary) {
     for (const [finding_, affectedLoadouts] of Object.entries(analysisSummary.loadoutsByFindings)) {
       if (affectedLoadouts.size > 0) {
-        const finding = parseInt(finding_, 10) as LoadoutFinding;
+        const finding: LoadoutFinding = parseInt(finding_, 10);
         const display = findingDisplays[finding];
         if (!display.icon) {
           continue;

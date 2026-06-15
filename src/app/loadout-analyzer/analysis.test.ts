@@ -20,13 +20,10 @@ import { Loadout } from 'app/loadout/loadout-types';
 import { armorStats } from 'app/search/d2-known-values';
 import { maxOf, sumBy } from 'app/utils/collections';
 import { noop, stubTrue } from 'app/utils/functions';
+import { DestinyClass, DestinyProfileResponse } from 'bungie-api-ts/destiny2';
 import { BucketHashes, StatHashes } from 'data/d2/generated-enums';
 import { normalToReducedMod } from 'data/d2/reduced-cost-mod-mappings';
 import { produce } from 'immer';
-import {
-  DestinyClass,
-  DestinyProfileResponse,
-} from 'node_modules/bungie-api-ts/destiny2/interfaces';
 import { classStatModHash } from 'testing/test-item-utils';
 import { fetchTestProfile, getTestDefinitions, getTestStores } from 'testing/test-utils';
 import { analyzeLoadout } from './analysis';
@@ -258,6 +255,7 @@ describe('basic loadout analysis finding tests', () => {
             i.bucket.hash === hash &&
             i.energy &&
             i.energy.energyCapacity >= 2 &&
+            i.energy.energyCapacity < 10 &&
             i.rarity === 'Legendary' &&
             !i.masterwork &&
             i.stats?.every((stat) => stat.statHash !== StatHashes.Class || stat.base <= 20),

@@ -9,11 +9,12 @@ import { t } from 'app/i18next-t';
 import { inGameLoadoutLoaded } from 'app/loadout/ingame/actions';
 import { processInGameLoadouts } from 'app/loadout/loadout-type-converters';
 import { loadCoreSettings } from 'app/manifest/actions';
-import { checkForNewManifest } from 'app/manifest/manifest-service-json';
+import { checkForNewManifest, reloadToUpdateManifest } from 'app/manifest/manifest-service-json';
 import { d2ManifestSelector, manifestSelector } from 'app/manifest/selectors';
 import { loadingTracker } from 'app/shell/loading-tracker';
 import { get, set } from 'app/storage/idb-keyval';
 import { ThunkResult } from 'app/store/types';
+import { isMobileBrowser } from 'app/utils/browsers';
 import { DimError } from 'app/utils/dim-error';
 import { convertToError, errorMessage } from 'app/utils/errors';
 import { errorLog, infoLog, timer, warnLog } from 'app/utils/log';
@@ -29,7 +30,6 @@ import {
   CharacterInfo,
   charactersUpdated,
   error,
-  loadNewItems,
   profileError,
   profileLoaded,
   update,
@@ -66,7 +66,7 @@ export function updateCharacters(): ThunkResult {
       return;
     }
 
-    let characters: CharacterInfo[] = [];
+    let characters: CharacterInfo[];
     if (account.destinyVersion === 2) {
       const profileInfo = await getCharacters(account);
       characters = profileInfo.characters.data
@@ -151,7 +151,6 @@ export function loadStores({
 
             dispatch(loadCoreSettings()); // no need to wait
             $featureFlags.clarityDescriptions && dispatch(loadClarity()); // no need to await
-            await dispatch(loadNewItems(account));
             // The first time we load, allow the data to be loaded from IDB. We then do a second
             // load to make sure that we immediately try to get remote data.
             if (firstTime) {
@@ -394,11 +393,18 @@ function loadStoresData(
             // immediately try again.
             if (
               stores.some((s) => s.hadErrors) &&
-              lastCheckedManifest - Date.now() > 5 * 60 * 1000
+              Date.now() - lastCheckedManifest > 5 * 60 * 1000
             ) {
               lastCheckedManifest = Date.now();
 
               if (await checkForNewManifest()) {
+                // On mobile, downloading the new manifest while the old one is
+                // still in memory can get the page killed for using too much
+                // memory - reload the app instead, so the new manifest is
+                // downloaded on a fresh boot.
+                if (isMobileBrowser() && (await reloadToUpdateManifest())) {
+                  return;
+                }
                 defs = await dispatch(getDefinitions(true));
                 continue; // go back to the top of the loop with the new defs
               }

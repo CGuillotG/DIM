@@ -1,6 +1,80 @@
 ## Next
 
+* Add custom icon for praxic blade catalyst.
+
+## 8.129.1 <span class="changelog-date">(2026-06-14)</span>
+
+## 8.129.0 <span class="changelog-date">(2026-06-14)</span>
+
+* Remove references to the "New Gear" or "Featured Items" concepts.
+
+## 8.128.1 <span class="changelog-date">(2026-06-13)</span>
+
+* Add support for the Set Bonus mod socket on event items, including `modslot:setbonus` search filter
+* d2foundry.gg links are gone again
+* Artifacts can now be equipped
+* Removed countdown from Season Pass.
+* Greatly reduced memory usage while downloading a new Destiny 2 manifest, and DIM on mobile now reloads itself automatically to pick up manifest updates. This should fix black screens and crashes on iOS (and some Android devices) after Destiny 2 updates.
+* Add Champion Breaker icons to intrinsic perk display and rearrange mod socket display
+
+## 8.128.0 <span class="changelog-date">(2026-06-07)</span>
+
+## 8.127.0 <span class="changelog-date">(2026-05-31)</span>
+
+## 8.126.0 <span class="changelog-date">(2026-05-24)</span>
+
+## 8.125.0 <span class="changelog-date">(2026-05-17)</span>
+
+## 8.124.0 <span class="changelog-date">(2026-05-10)</span>
+
+* Fix masterwork socket on newer armor not displaying correctly
+* Add the ability to select exotic class item perks in Loadout Optimizer
+* Fix Lore book title position on the Records page
+
+## 8.123.0 <span class="changelog-date">(2026-05-03)</span>
+
+* Restyle Collections Armor to match Universal Ornaments.
+* d2foundry.gg is back, and so are our links to it.
+
+## 8.122.0 <span class="changelog-date">(2026-04-26)</span>
+
+## 8.121.0 <span class="changelog-date">(2026-04-19)</span>
+
+## 8.120.0 <span class="changelog-date">(2026-04-12)</span>
+
+## 8.119.0 <span class="changelog-date">(2026-04-05)</span>
+
+* Restyled Stat trackers on Records page and added their gilding requirements
+* The warning tooltip for mismatched perk hashes in wishlists will now show the perk name in addition to the perk hash.
+* Removed links to d2foundry.gg which has sadly shut down.
+* Fixed tooltips showing unnecessarily due to a bug in iOS 26.
+
+## 8.118.0 <span class="changelog-date">(2026-03-29)</span>
+
+## 8.117.0 <span class="changelog-date">(2026-03-22)</span>
+
+* Add Territorial Profit quest and other milestone-based quest steps to Progress tab
+
+## 8.116.0 <span class="changelog-date">(2026-03-15)</span>
+
+## 8.115.0 <span class="changelog-date">(2026-03-08)</span>
+
+## 8.114.0 <span class="changelog-date">(2026-03-01)</span>
+
+## 8.113.0 <span class="changelog-date">(2026-02-22)</span>
+
+## 8.112.0 <span class="changelog-date">(2026-02-15)</span>
+
+## 8.111.0 <span class="changelog-date">(2026-02-08)</span>
+
+## 8.110.0 <span class="changelog-date">(2026-02-01)</span>
+
+## 8.109.0 <span class="changelog-date">(2026-01-25)</span>
+
+## 8.108.1 <span class="changelog-date">(2026-01-23)</span>
+
 * Fix Loadout Optimizer being unable to plan Artifice mods for Exotic armor with a locked Artifice mod slot.
+* Fix scrolling not working on Loadout Optimizer on Chrome 144 for Android.
 
 ## 8.108.0 <span class="changelog-date">(2026-01-18)</span>
 

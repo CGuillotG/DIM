@@ -16,7 +16,7 @@ import { PlatformErrorCodes } from 'bungie-api-ts/user';
 import { BucketHashes } from 'data/d2/generated-enums';
 import { memoize } from 'es-toolkit';
 import { Immutable } from 'immer';
-import { AnyAction } from 'redux';
+import { UnknownAction } from 'redux';
 import { ThunkAction } from 'redux-thunk';
 import {
   equipItems as d1EquipItems,
@@ -162,7 +162,7 @@ function updateItemModel(
   target: DimStore,
   equip: boolean,
   amount: number = item.amount,
-): ThunkAction<DimItem, RootState, undefined, AnyAction> {
+): ThunkAction<DimItem, RootState, undefined, UnknownAction> {
   return (dispatch, getState) =>
     startSpan({ name: 'updateItemModel' }, () => {
       const stopTimer = timer(TAG, 'itemMovedUpdate');
@@ -509,6 +509,7 @@ function canEquipExotic(
             slot: otherExotic.typeName,
             error: errorMessage(e),
           }),
+          { cause: e },
         );
       }
     } else {
@@ -584,9 +585,7 @@ function chooseMoveAsideItem(
     allItems = target.isVault
       ? target.items.filter(
           (i) =>
-            i.bucket.vaultBucket &&
-            item.bucket.vaultBucket &&
-            i.bucket.vaultBucket.hash === item.bucket.vaultBucket.hash,
+            i.bucket.vaultBucket && i.bucket.vaultBucket.hash === item.bucket.vaultBucket?.hash,
         )
       : findItemsByBucket(target, item.bucket.hash);
   } catch (e) {
@@ -1076,7 +1075,6 @@ export function executeMoveItem(
           ),
         );
         target = getStore(getStores(), target.id)!;
-        source = getStore(getStores(), item.owner)!;
         item = await dispatch(moveToVault(item, amount, session));
 
         // now make sure the target char has space before trying to unvault the item
@@ -1084,7 +1082,6 @@ export function executeMoveItem(
           ensureValidTransfer(equip, target, item, amount, excludes, reservations, session),
         );
         target = getStore(getStores(), target.id)!;
-        source = getStore(getStores(), item.owner)!;
         item = await dispatch(moveToStore(item, target, equip, amount, session));
       }
       if (equip && !item.equipped) {
