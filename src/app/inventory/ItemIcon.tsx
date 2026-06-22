@@ -204,21 +204,13 @@ export default function ItemIcon({ item, className }: { item: DimItem; className
             <div style={bungieBackgroundStyles(seasonBanners)} className={styles.shiftedLayer} />
           )}
           {tierPips && (
-            <>
-              <div
-                style={bungieBackgroundStyle(tierPips)}
-                className={clsx(styles.shiftedLayer, {
-                  [styles.tier4Pips]: item.tier === 4,
-                  [styles.tier5Pips]: item.tier === 5,
-                })}
-              />
-              {/* {item.tier >= 4 && (
-                <div
-                  style={bungieBackgroundStyle(tierPips)}
-                  className={clsx(styles.shiftedLayer, styles.tierPipOverlay)}
-                />
-              )} */}
-            </>
+            <div
+              style={bungieBackgroundStyle(tierPips)}
+              className={clsx(styles.shiftedLayer, {
+                [styles.tier4Pips]: item.tier === 4,
+                [styles.tier5Pips]: item.tier === 5,
+              })}
+            />
           )}
           {seasonIcon && (
             <div style={bungieBackgroundStyle(seasonIcon)} className={styles.seasonIcon} />

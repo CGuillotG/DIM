@@ -115,21 +115,13 @@ function SeasonTierBanner({ item }: { item: DimItem }) {
         {seasonIcon && <BungieImage src={seasonIcon} />}
       </div>
       {tierPips && (
-        <>
-          <div
-            className={clsx(styles.iconOverlay, {
-              [styles.tier4Pips]: item.tier === 4,
-              [styles.tier5Pips]: item.tier === 5,
-            })}
-            style={bungieBackgroundStyle(tierPips)}
-          />
-          {/* {item.tier >= 4 && (
-            <div
-              style={bungieBackgroundStyle(tierPips)}
-              className={clsx(styles.iconOverlay, styles.tierPipOverlay)}
-            />
-          )} */}
-        </>
+        <div
+          className={clsx(styles.iconOverlay, {
+            [styles.tier4Pips]: item.tier === 4,
+            [styles.tier5Pips]: item.tier === 5,
+          })}
+          style={bungieBackgroundStyle(tierPips)}
+        />
       )}
     </>
   );
